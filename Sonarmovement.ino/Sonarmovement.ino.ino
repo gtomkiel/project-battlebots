@@ -22,9 +22,8 @@ All this occurs if sonarSensor senses a distance<collisionDistance(cDistance)
   Learn how to use bluettoth to activate robot(relay race related)
 */
 
-/*
-Code for initialising use of Ardafruit
-*/
+
+//Code for initialising use of Ardafruit
 
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
@@ -32,6 +31,7 @@ Code for initialising use of Ardafruit
 #endif
 
 /*
+ Pin position for each Line sensor's wire
 white A4
 grey  A5
 purple A6
