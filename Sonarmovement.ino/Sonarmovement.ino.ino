@@ -7,7 +7,13 @@ Trig 10 -> Green wire sends  ultrasonic wave
 Echo 9  -> Yellow wire listens for reflected signal
 Considering the travel time and the speed of the sound you can calculate the distance.
 
-Future Tasks
+===================[CURRENT FAULTS]===================
+evadeCollision2() contains logic to move backwards if turnRight() then turnLeft() after a couple of seconds doesnt work, then moveBackward() should occur for a time interval, 
+then moveForward or turnLeft should occur for a couple seconds, then moveForward
+All this occurs if sonarSensor senses a distance<collisionDistance(cDistance)
+
+
+===================[FUTURE TASKS]===================
   Learn how to use line sensor(works for tape, darker tape,higher value & vice-versa for lighter tape) 
   Learn how to use the gripper(read libraries & create own functionalities)
   Then research how to control the speed of the tires-> Figure out how to control speed using pulses/second ;
