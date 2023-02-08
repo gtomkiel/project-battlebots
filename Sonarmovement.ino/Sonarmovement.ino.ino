@@ -13,6 +13,7 @@ Future Tasks
   Then research how to control the speed of the tires-> Figure out how to control speed using pulses/second ;
   research PWM(6 of them)
   Then bluetooth configuration(Search bluetooth 2 way connector)
+  Learn how to use bluettoth to activate robot(relay race related)
 */
 
 /*
