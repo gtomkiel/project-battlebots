@@ -44,11 +44,11 @@ If the request is accepted the code will be pulled into the main branch.
 #### Setting up local repository
 1. Clone the repository
 ```
-git clone git@github.com:gtomkiel/GroupB-term2.git
+git clone git@github.com:gtomkiel/project-battlebots.git
 ```
 2. Navigate to the folder where you have the project files
 ```
-cd GroupB-term2
+cd project-battlebots
 ```
 3. Switch to your branch
 ```
@@ -92,14 +92,14 @@ git commit -m "<your-messeage>"
 git push
 ```
 
-#### Sync your branch to master
+#### Sync your branch to main
 1. Make sure you are in your branch
 ```
 git checkout <branch-name>
 ```
 ```
 git fetch origin
-git merge origin/master
+git merge origin/main
 ```
 5. (Optional) Fix possible merge conflicts
 
