@@ -15,8 +15,6 @@ All this occurs if sonarSensor senses a distance<collisionDistance(cDistance)
 
 ===================[FUTURE TASKS]===================
   Learn how to use line sensor(works for tape, darker tape,higher value & vice-versa for lighter tape) 
-  Then research how to control the speed of the tires-> Figure out how to control speed using pulses/second ;
-  research PWM(6 of them)
   Then bluetooth configuration(Search bluetooth 2 way connector)
   Learn how to use bluettoth to activate robot(relay race related)
 */
