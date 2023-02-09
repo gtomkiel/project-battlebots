@@ -14,7 +14,6 @@ All this occurs if sonarSensor senses a distance<collisionDistance(cDistance)
 
 
 ===================[FUTURE TASKS]===================
-  Learn how to use the gripper(read libraries & create own functionalities3)
   Learn how to use line sensor(works for tape, darker tape,higher value & vice-versa for lighter tape) 
   Then research how to control the speed of the tires-> Figure out how to control speed using pulses/second ;
   research PWM(6 of them)
@@ -76,10 +75,6 @@ const int a2 = A1;
 const int b1 = A2;
 const int b2 = A3;
 
-
-
-
-
 /* MOtor setuo using digitalWrite()
   #define a1 6 //blue a0
 
@@ -135,6 +130,7 @@ void loop(){
 
   // evadeCollision();
   //moveForward();
+  //gripperOpen();
 }
 
 /*
