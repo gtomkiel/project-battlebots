@@ -14,8 +14,8 @@ All this occurs if sonarSensor senses a distance<collisionDistance(cDistance)
 
 
 ===================[FUTURE TASKS]===================
+  Learn how to use the gripper(read libraries & create own functionalities3)
   Learn how to use line sensor(works for tape, darker tape,higher value & vice-versa for lighter tape) 
-  Learn how to use the gripper(read libraries & create own functionalities)
   Then research how to control the speed of the tires-> Figure out how to control speed using pulses/second ;
   research PWM(6 of them)
   Then bluetooth configuration(Search bluetooth 2 way connector)
@@ -23,12 +23,17 @@ All this occurs if sonarSensor senses a distance<collisionDistance(cDistance)
 */
 
 
-//Code for initialising use of Ardafruit
+//Initialising use of Ardafruit
 
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
 #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
 #endif
+
+//Initialising Servo
+#include <Servo.h>
+
+Servo gripper; //servo object named gripper
 
 /*
  Pin position for each Line sensor's wire
@@ -70,6 +75,10 @@ const int a1 = A0;
 const int a2 = A1;
 const int b1 = A2;
 const int b2 = A3;
+
+
+
+
 
 /* MOtor setuo using digitalWrite()
   #define a1 6 //blue a0
@@ -114,6 +123,8 @@ void setup(){
   pinMode (a2, OUTPUT);
   pinMode (b1, OUTPUT);
   pinMode (b2, OUTPUT);
+
+  gripper.attach(2);        //Initialising Gripper pin
 }
 //const int pina1 = ;
 // analogWrite(pina1, 255)
@@ -122,11 +133,24 @@ void setup(){
 //===== [LOOP] =====
 void loop(){
 
- // neoMoveForward();
-  evadeCollision();
-
+  // evadeCollision();
   //moveForward();
 }
+
+/*
+  Set interval to ensure gripper isOpen before movement
+*/
+void gripperOpen(){
+  
+    int upperBound = 124;               //Best gripperOpen angle found from experimenting
+    gripper.write(upperBound);  
+  }
+
+void gripperClose(){
+  
+    int lowerBound = 45;                //Best gripperClose angle found from experimenting
+    gripper.write(lowerBound);
+  }
 
 /*
   Current code logic
