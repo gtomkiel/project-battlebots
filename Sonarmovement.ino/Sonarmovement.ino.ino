@@ -18,7 +18,10 @@ All this occurs if sonarSensor senses a distance<collisionDistance(cDistance)
   Then bluetooth configuration(Search bluetooth 2 way connector)
   Learn how to use bluettoth to activate robot(relay race related)
 */
-
+//Iniatialising Threads
+//#include <iostream>
+//#include <thread>
+using namespace std;
 
 //Initialising use of Ardafruit
 
@@ -33,17 +36,7 @@ All this occurs if sonarSensor senses a distance<collisionDistance(cDistance)
 Servo gripper; //servo object named gripper
 Servo sonarServo;
 
-/*
- Pin position for each Line sensor's wire
-white A4
-grey  A5
-purple A6
-blue  A7
-green  D3
-yellow D5
-orange  D9
-brown   D10
-*/
+
 
 // define pin numbers
 const int trigPin = 7;
@@ -127,26 +120,76 @@ void setup(){
 
 //===== [LOOP] =====
 void loop(){
-
+   //moveForward();
   // evadeCollision();
   //moveForward();
   //gripperOpen();
-  printDistance();
-  //turn();
+ // printDistance();
+ //scan();
 }
+/*
+Modify scan method to moveforward, then scan for second
+
+*/
+void evadeCollision3(){//Movement logic using millis
+ 
+ unsigned long currentMillis_1 =millis();
+ printDistance();
+ 
+  Serial.print("Time is:");
+  Serial.println(currentMillis_1);
+   scan();
+   moveForward();
+   if(calculateDistance()< cDistance){ //if distance<30 
+   // printDistance();
+    clearMotors();
+    turnRight();                //device turns right 
+    
+    if(currentMillis_1 - previousMillis_1 >= interval_1 ){  //if after 0,5s
+         
+          previousMillis_1 = millis();
+          if(calculateDistance()< cDistance){                       // and distance is still less than 60, turn left
+            clearMotors();
+              while(calculateDistance() < cDistance){        //while loop to ensure the device turns left completely
+                 Serial.println("Stuck in while loop");
+                turnLeft();
+                printDistance();
+              }
+            }
+           clearMotors();
+          moveForward();
+      }
+    }
+  }
+
+
 
 /*
   Set interval to ensure gripper isOpen before movement
+
+  for turn
+  have certain angles ,after a specific delay, write those
+  150, 30
 */
 
-void turn(){
-  for(int i=0; i < 180; i++){
-    sonarServo.write(i);
-    if(i == 170){
-        i=0;
-      }
-    }
-    delay(1000);
+void scan(){
+    sonarServo.write(150);
+    sonarServo.write(30);
+//    for(int i = 30; i <= 150 ; i++){
+//       sonarServo.write(i);
+//       delay(8);
+//       Serial.print(i);
+//      calculateDistance();
+//       if(i = 150){
+//        while(i>=30){
+//          sonarServo.write(i);
+//          delay(8);
+//          Serial.print(i);
+//          calculateDistance();
+//          i--;
+//         }
+//       }
+//     }
   }
 void gripperOpen(){
   
@@ -213,6 +256,8 @@ void evadeCollision2(){//Movement logic using millis
     }
   }
 
+
+
 void evadeCollision(){//Movement logic using millis
  
  unsigned long currentMillis_1 =millis();
@@ -220,7 +265,7 @@ void evadeCollision(){//Movement logic using millis
  
   Serial.print("Time is:");
   Serial.println(currentMillis_1);
-  
+   clearMotors();
    moveForward();
    if(calculateDistance()< cDistance){ //if distance<30 
    // printDistance();
