@@ -31,6 +31,7 @@ All this occurs if sonarSensor senses a distance<collisionDistance(cDistance)
 #include <Servo.h>
 
 Servo gripper; //servo object named gripper
+Servo sonarServo;
 
 /*
  Pin position for each Line sensor's wire
@@ -118,6 +119,7 @@ void setup(){
   pinMode (b2, OUTPUT);
 
   gripper.attach(2);        //Initialising Gripper pin
+  sonarServo.attach(13);
 }
 //const int pina1 = ;
 // analogWrite(pina1, 255)
@@ -129,11 +131,23 @@ void loop(){
   // evadeCollision();
   //moveForward();
   //gripperOpen();
+  printDistance();
+  //turn();
 }
 
 /*
   Set interval to ensure gripper isOpen before movement
 */
+
+void turn(){
+  for(int i=0; i < 180; i++){
+    sonarServo.write(i);
+    if(i == 170){
+        i=0;
+      }
+    }
+    delay(1000);
+  }
 void gripperOpen(){
   
     int upperBound = 124;               //Best gripperOpen angle found from experimenting
