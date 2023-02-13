@@ -14,10 +14,13 @@ brown   D10
 Considering the travel time and the speed of the sound you can calculate the distance.
 
 ===================[CURRENT FAULTS]===================
-evadeCollision2() contains logic to move backwards if turnRight() then turnLeft() after a couple of seconds doesnt work, then moveBackward() should occur for a time interval, 
-then moveForward or turnLeft should occur for a couple seconds, then moveForward
-All this occurs if sonarSensor senses a distance<collisionDistance(cDistance)
+If sensor within black tape threshold => value set to 1
+if not black tape threshold =>     value is 0
+if 00011100 -> could be moveForwardand right alittle bit like 80 degrees forward
+if 11100000 -> turnLeft
 
+Add a speaker for Wall-E noises
+improve motor output from 50% => something higher
 
 ===================[FUTURE TASKS]===================
   Learn how to use line sensor(works for tape, darker tape,higher value & vice-versa for lighter tape) 
