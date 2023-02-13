@@ -21,10 +21,9 @@ All this occurs if sonarSensor senses a distance<collisionDistance(cDistance)
 //Iniatialising Threads
 //#include <iostream>
 //#include <thread>
-using namespace std;
+//using namespace std;
 
 //Initialising use of Ardafruit
-
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
 #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
@@ -35,7 +34,6 @@ using namespace std;
 
 Servo gripper; //servo object named gripper
 Servo sonarServo;
-
 
 
 // define pin numbers
