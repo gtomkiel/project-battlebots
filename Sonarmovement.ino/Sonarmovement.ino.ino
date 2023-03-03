@@ -125,6 +125,7 @@ void setup(){
 //===== [LOOP] =====
 void loop(){
 
+  turnRight();
   //lookForward();
   //lookLeft();
   //lookRight();
@@ -137,38 +138,14 @@ void loop(){
 }
 
 /*
-  Set interval to ensure gripper isOpen before movement
-
-  for turn
-  have certain angles ,after a specific delay, write those
-  150, 30
-  use scan to determine the motor function to call at motor stop
+  moveForward
+  if(calcDistance <= cDistance){
+  
+  }
 */
-
-//int scan(){
-//  //  sonarServo.write(120);
-//  //  sonarServo.write(60);
-//    for(int i = 30; i <= 150 ; i++){
-//   //    sonarServo.write(i);
-//       delay(8);
-//    //   Serial.print(i);
-//      if(calculateDistance() > cDistance){
-//            return i;
-//        }
-//       if(i = 150){
-//        while(i>=30){
-//      //    sonarServo.write(i);
-//          delay(8);
-//     //     Serial.print(i);
-//          if(calculateDistance() > cDistance){
-//            return i;
-//            }
-//          i--;
-//         }
-//       }
-//     }
-//    return 0;
-//  }
+void evadeCollision4(){
+      
+}
 
 /*
 Modify scan method to moveforward, then scan for second
@@ -329,26 +306,34 @@ void evadeCollision(){//Movement logic using millis
   }
 
 void moveForward(){
-  analogWrite(a2,130); // turns left tire forwards
-  analogWrite(b1,130);   //turns right tire forwards
+  analogWrite(a2,180);   // turns left tire forward
+  analogWrite(b1,180);  //turns right tire forward
+  analogWrite(a1, 0);   //left tire backward 0
+  analogWrite(b2, 0);   //right tire backward 0
   neoMoveForward();
   }
 
 void turnRight(){ //This moves the my left tire forwards and stops the right tire from rotating
-  analogWrite(a2,100); // turns left tire forwards
-  analogWrite(b2,100);   // truerns right tire backwards
+  analogWrite(a2,100);  //left tire forward
+  analogWrite(b2,100);  //right tire backward
+  analogWrite(a1, 0);   //left tire backward 0
+  analogWrite(b1, 0);   //right tire forward 0
   neoTurnRight();
 }
-
+  
 void turnLeft(){ //This moves the my left tire backwards and stops the right tire from rotating
-  analogWrite(a1,255); //turns left tire backwards
-  analogWrite(b1,255);   //turns right tire forwards
+  analogWrite(a1,255);  //left tire backward
+  analogWrite(b1,255);  //right tire forward
+  analogWrite(a2, 0);   //left tire forward 0
+  analogWrite(b2, 0);   //right tire backward 0
   neoTurnLeft();
 }
 
 void moveBackward(){ //Moves both tires backwards
-  analogWrite(b2,255);   // truerns right tire backwards
-  analogWrite(a1,255); //turns left tire backwards
+  analogWrite(b2,255);  //right tire backward
+  analogWrite(a1,255);  //turns left tire backward
+  analogWrite(b1,0);    //right tire forward 0
+  analogWrite(a2,0);    //left forward 0
   neoMoveBackward();
 }
 
