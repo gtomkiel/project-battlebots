@@ -8,8 +8,8 @@ purple A6
 blue  A7
 green  D3
 yellow D5
-orange  D9
-brown   D10
+orange  D11
+brown   D12
 
 Considering the travel time and the speed of the sound you can calculate the distance.
 

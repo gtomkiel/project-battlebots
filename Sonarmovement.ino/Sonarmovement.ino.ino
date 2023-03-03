@@ -18,10 +18,7 @@ All this occurs if sonarSensor senses a distance<collisionDistance(cDistance)
   Then bluetooth configuration(Search bluetooth 2 way connector)
   Learn how to use bluettoth to activate robot(relay race related)
 */
-//Iniatialising Threads
-//#include <iostream>
-//#include <thread>
-//using namespace std;
+
 
 //Initialising use of Ardafruit
 #include <Adafruit_NeoPixel.h>
@@ -30,13 +27,20 @@ All this occurs if sonarSensor senses a distance<collisionDistance(cDistance)
 #endif
 
 //Initialising Servo
-#include <Servo.h>
+#define sonarServoPin 10 
+#define gripperPin 9
 
-Servo gripper; //servo object named gripper
-Servo sonarServo;
+//defining sonarServo rotation in microseconds
+#define sonarServoMinPulse 500
+#define sonarServoCenterPulse 1400
+#define sonarServoMaxPulse 2400
+#define servoPulseRepeat 10   //number of pulses sent to servo,A servo needs at least a minimum of 2 pulses but generally 10 pulses.
 
+//defining gripper rotation 
+#define gripper_open_pulse 1600
+#define gripper_close_pulse 971
 
-// define pin numbers
+// define sonar sensor pins
 const int trigPin = 7;
 const int echoPin = 6;
 
@@ -74,7 +78,7 @@ const int b2 = A3;
 
   #define b2 5 //yellow a3
 */
-const int cDistance = 45;
+const int cDistance = 40;
 
 //Define time for events
 unsigned long previousMillis_1 = 0; //Strore time for 1st event
@@ -109,8 +113,10 @@ void setup(){
   pinMode (b1, OUTPUT);
   pinMode (b2, OUTPUT);
 
-  gripper.attach(2);        //Initialising Gripper pin
-  sonarServo.attach(13);
+  //Setting up servoPins
+  pinMode(sonarServoPin, OUTPUT);
+  pinMode(gripperPin, OUTPUT);
+  digitalWrite(sonarServoPin, LOW);
 }
 //const int pina1 = ;
 // analogWrite(pina1, 255)
@@ -118,49 +124,19 @@ void setup(){
 
 //===== [LOOP] =====
 void loop(){
-   //moveForward();
-  // evadeCollision();
-  //moveForward();
+
   //gripperOpen();
+  // moveForward();
+  // evadeCollision3();
+   
+ // moveForward();
+
+ // delay(1000);
+  
+  gripperClose();
  // printDistance();
  //scan();
 }
-/*
-Modify scan method to moveforward, then scan for second
-
-*/
-void evadeCollision3(){//Movement logic using millis
- 
- unsigned long currentMillis_1 =millis();
- printDistance();
- 
-  Serial.print("Time is:");
-  Serial.println(currentMillis_1);
-   scan();
-   moveForward();
-   if(calculateDistance()< cDistance){ //if distance<30 
-   // printDistance();
-    clearMotors();
-    turnRight();                //device turns right 
-    
-    if(currentMillis_1 - previousMillis_1 >= interval_1 ){  //if after 0,5s
-         
-          previousMillis_1 = millis();
-          if(calculateDistance()< cDistance){                       // and distance is still less than 60, turn left
-            clearMotors();
-              while(calculateDistance() < cDistance){        //while loop to ensure the device turns left completely
-                 Serial.println("Stuck in while loop");
-                turnLeft();
-                printDistance();
-              }
-            }
-           clearMotors();
-          moveForward();
-      }
-    }
-  }
-
-
 
 /*
   Set interval to ensure gripper isOpen before movement
@@ -168,37 +144,92 @@ void evadeCollision3(){//Movement logic using millis
   for turn
   have certain angles ,after a specific delay, write those
   150, 30
+  use scan to determine the motor function to call at motor stop
 */
 
-void scan(){
-    sonarServo.write(150);
-    sonarServo.write(30);
+//int scan(){
+//  //  sonarServo.write(120);
+//  //  sonarServo.write(60);
 //    for(int i = 30; i <= 150 ; i++){
-//       sonarServo.write(i);
+//   //    sonarServo.write(i);
 //       delay(8);
-//       Serial.print(i);
-//      calculateDistance();
+//    //   Serial.print(i);
+//      if(calculateDistance() > cDistance){
+//            return i;
+//        }
 //       if(i = 150){
 //        while(i>=30){
-//          sonarServo.write(i);
+//      //    sonarServo.write(i);
 //          delay(8);
-//          Serial.print(i);
-//          calculateDistance();
+//     //     Serial.print(i);
+//          if(calculateDistance() > cDistance){
+//            return i;
+//            }
 //          i--;
 //         }
 //       }
 //     }
+//    return 0;
+//  }
+
+/*
+Modify scan method to moveforward, then scan for second
+
+*/
+//void evadeCollision3(){//Movement logic using millis
+// 
+// unsigned long currentMillis_1 =millis();
+// printDistance();
+// 
+//  Serial.print("Time is:");
+//  Serial.println(currentMillis_1);
+//
+//  moveForward();
+//
+//  if(calculateDistance()<= cDistance){
+//      clearMotors();
+//
+//      if(currentMillis_1 - previousMillis_1 >= interval_1 ){  //if after 0,5s
+//        previousMillis_1 = millis();
+//          if(scan()>=30 && scan()< 90){
+//            clearMotors();
+//            turnRight();
+//            delay(80);
+//          }else if(scan() > 90 && scan()<=150){
+//            clearMotors();
+//            turnLeft();
+//            delay(80);
+//          }else if(scan() == 90){
+//            clearMotors();
+//            moveForward();
+//            delay(80);
+//          }
+//        }   
+//      }
+//      clearMotors();
+// }
+//
+//
+
+void servo(int pin, int length){
+      digitalWrite(pin,HIGH);
+      delayMicroseconds(length); //in microseconds
+      digitalWrite(pin,LOW);
+      delay(20);
   }
+
 void gripperOpen(){
-  
-    int upperBound = 124;               //Best gripperOpen angle found from experimenting
-    gripper.write(upperBound);  
+
+  servo(gripperPin, gripper_open_pulse);
+  //  int upperBound = 124;               //Best gripperOpen angle found from experimenting
+  //  gripper.write(upperBound);  
   }
 
 void gripperClose(){
-  
-    int lowerBound = 45;                //Best gripperClose angle found from experimenting
-    gripper.write(lowerBound);
+
+  servo(gripperPin, gripper_close_pulse);
+  //  int lowerBound = 45;                //Best gripperClose angle found from experimenting
+  //  gripper.write(lowerBound);
   }
 
 /*
@@ -265,7 +296,7 @@ void evadeCollision(){//Movement logic using millis
   Serial.println(currentMillis_1);
    clearMotors();
    moveForward();
-   if(calculateDistance()< cDistance){ //if distance<30 
+   if(calculateDistance()<= cDistance){ //if distance<30 
    // printDistance();
     clearMotors();
     turnRight();                //device turns right 
@@ -273,7 +304,7 @@ void evadeCollision(){//Movement logic using millis
     if(currentMillis_1 - previousMillis_1 >= interval_1 ){  //if after 0,5s
          
           previousMillis_1 = millis();
-          if(calculateDistance()< cDistance){                       // and distance is still less than 60, turn left
+          if(calculateDistance()<= cDistance){                       // and distance is still less than 60, turn left
             clearMotors();
               while(calculateDistance() < cDistance){        //while loop to ensure the device turns left completely
                  Serial.println("Stuck in while loop");
@@ -288,23 +319,20 @@ void evadeCollision(){//Movement logic using millis
   }
 
 void moveForward(){
-  analogWrite(a2,255); // turns left tire forwards
-  analogWrite(b1,255);   //turns right tire forwards
-
-   neoMoveForward();
+  analogWrite(a2,130); // turns left tire forwards
+  analogWrite(b1,130);   //turns right tire forwards
+  neoMoveForward();
   }
 
 void turnRight(){ //This moves the my left tire forwards and stops the right tire from rotating
-  analogWrite(a2,225); // turns left tire forwards
-  analogWrite(b2,255);   // truerns right tire backwards
-
+  analogWrite(a2,100); // turns left tire forwards
+  analogWrite(b2,100);   // truerns right tire backwards
   neoTurnRight();
 }
 
 void turnLeft(){ //This moves the my left tire backwards and stops the right tire from rotating
-  analogWrite(a1,225); //turns left tire backwards
+  analogWrite(a1,255); //turns left tire backwards
   analogWrite(b1,255);   //turns right tire forwards
-
   neoTurnLeft();
 }
 
