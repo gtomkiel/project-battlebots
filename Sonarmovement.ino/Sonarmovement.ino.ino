@@ -37,8 +37,8 @@ All this occurs if sonarSensor senses a distance<collisionDistance(cDistance)
 #define servoPulseRepeat 10   //number of pulses sent to servo,A servo needs at least a minimum of 2 pulses but generally 10 pulses.
 
 //defining gripper rotation 
-#define gripper_open_pulse 1600
-#define gripper_close_pulse 971
+#define gripperOpenPulse 1600
+#define gripperClosePulse 971
 
 // define sonar sensor pins
 const int trigPin = 7;
@@ -125,15 +125,13 @@ void setup(){
 //===== [LOOP] =====
 void loop(){
 
+  //lookForward();
+  //lookLeft();
+  //lookRight();
   //gripperOpen();
   // moveForward();
-  // evadeCollision3();
-   
- // moveForward();
-
- // delay(1000);
-  
-  gripperClose();
+  // evadeCollision3();  
+  //gripperClose();
  // printDistance();
  //scan();
 }
@@ -212,25 +210,37 @@ Modify scan method to moveforward, then scan for second
 //
 
 void servo(int pin, int length){
-      digitalWrite(pin,HIGH);
-      delayMicroseconds(length); //in microseconds
-      digitalWrite(pin,LOW);
-      delay(20);
-  }
+  
+  digitalWrite(pin,HIGH);
+  delayMicroseconds(length); //in microseconds
+  digitalWrite(pin,LOW);
+  delay(20);
+}
+
+void lookForward(){
+  
+  servo(sonarServoPin, sonarServoCenterPulse);
+}
+
+void lookLeft(){
+  
+  servo(sonarServoPin, sonarServoMaxPulse);
+}
+
+void lookRight(){
+  
+  servo(sonarServoPin, sonarServoMinPulse);
+}
 
 void gripperOpen(){
-
-  servo(gripperPin, gripper_open_pulse);
-  //  int upperBound = 124;               //Best gripperOpen angle found from experimenting
-  //  gripper.write(upperBound);  
-  }
+  
+  servo(gripperPin, gripperOpenPulse);
+}
 
 void gripperClose(){
 
-  servo(gripperPin, gripper_close_pulse);
-  //  int lowerBound = 45;                //Best gripperClose angle found from experimenting
-  //  gripper.write(lowerBound);
-  }
+  servo(gripperPin, gripperClosePulse);
+}
 
 /*
   Current code logic
