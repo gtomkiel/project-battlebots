@@ -134,13 +134,18 @@ void loop(){
   // evadeCollision3();  
   //gripperClose();
  // printDistance();
- //scan();
 }
 
 /*
   moveForward
   if(calcDistance <= cDistance){
-  
+    scan() => sonarServo goes from left to right checking if calcDistance > cDistance
+    if calcDistance in lookLeft() > cDistance => turnLeft() for a certain milliseconds => moveForward;
+    if calcDistance in lookRight() > cDistance => turnRight() for a certain milliseconds => moveForward;
+    if calcDistance in lookLeft() & lookRight() < cDistance()=> moveBackward() for a certain milliseconds
+     then lookLeft() && lookRight()
+      if calcDistance in lookLeft() > cDistance => turnLeft() for a certain milliseconds => moveForward;
+      if calcDistance in lookRight() > cDistance => turnRight() for a certain milliseconds => moveForward;
   }
 */
 void evadeCollision4(){
