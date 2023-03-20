@@ -8,15 +8,16 @@ Echo 9  -> Yellow wire listens for reflected signal
 Considering the travel time and the speed of the sound you can calculate the distance.
 
 ===================[CURRENT FAULTS]===================
-evadeCollision2() contains logic to move backwards if turnRight() then turnLeft() after a couple of seconds doesnt work, then moveBackward() should occur for a time interval, 
-then moveForward or turnLeft should occur for a couple seconds, then moveForward
-All this occurs if sonarSensor senses a distance<collisionDistance(cDistance)
-
-
+  change moveBackwards to turn 180 degrees
+  Ask for side sensor to ensure car stays in the middle of the lane
+  Thought process is, side sonar checks if there's an open lane to teh side of the car, if the space is higher than an upperLimit(ensure it doesnt enter a corner)
+  the car turns to the side
+  could use a while loop, while()=> continuosForward, evadeCollision5
+  if sideDistance > upperLimit, turnLeft/turnRight
 ===================[FUTURE TASKS]===================
-  Learn how to use line sensor(works for tape, darker tape,higher value & vice-versa for lighter tape) 
+
   Then bluetooth configuration(Search bluetooth 2 way connector)
-  Learn how to use bluettoth to activate robot(relay race related)
+  Learn how to use bluetooth to activate robot(relay race related)
 */
 
 
@@ -32,7 +33,7 @@ All this occurs if sonarSensor senses a distance<collisionDistance(cDistance)
 
 //defining sonarServo rotation in microseconds
 #define sonarServoMinPulse 500
-#define sonarServoCenterPulse 1400
+#define sonarServoCenterPulse 1520
 #define sonarServoMaxPulse 2400
 #define servoPulseRepeat 10   //number of pulses sent to servo,A servo needs at least a minimum of 2 pulses but generally 10 pulses.
 
@@ -41,8 +42,11 @@ All this occurs if sonarSensor senses a distance<collisionDistance(cDistance)
 #define gripperClosePulse 971
 
 // define sonar sensor pins
-const int trigPin = 7;
-const int echoPin = 6;
+#define forwardTrigPin 7       //trigPin
+#define forwardEchoPin 6       //echoPin
+
+#define leftTrigPin 5
+#define leftEchoPin 4
 
 #define pixelPIN 8      // pin assigned to NI of neoPixels
 #define NUMPIXELS 4   //number of pixels attached to strip
@@ -64,28 +68,23 @@ int distance;
 
 //Defining motor pins ; a1,a2 control LEFT_TIRE ; b1,b2 control RIGHT_TIRE
 
-const int a1 = A0;
-const int a2 = A1;
-const int b1 = A2;
-const int b2 = A3;
+#define leftTireForward A1
+#define leftTireBackward A0
+#define rightTireForward A2
+#define rightTireBackward A3
 
-/* MOtor setuo using digitalWrite()
-  #define a1 6 //blue a0
 
-  #define a2 7 //black a1
-
-  #define b1 4 //orange a2
-
-  #define b2 5 //yellow a3
-*/
-const int cDistance = 40;
+const int cDistance = 13;
+int leftDist = 0;
+int fDistance = 0;
+int rightDist = 0;
 
 //Define time for events
 unsigned long previousMillis_1 = 0; //Strore time for 1st event
 unsigned long previousMillis_2 = 0; //stores time for 2nd event
 
 //If sense infront turn right, if after millis still sense, turn left,while still sense turn left,after go forward
-const long interval_1 = 500; //interval to be used for turning
+const long interval_1 = 800; //interval to be used for turning
 const long interval_2 = 2500; //interval to turn backwards
 const long interval_3 = 3000; //interval to swap from turnLeft to moveForward
 //after backwards, turn left, after an interval move forward
@@ -103,93 +102,253 @@ void setup(){
   strip.setBrightness(50);  //set brightness of strip
   strip.show();             //Initialise all pixels to 'off' 
 
-  pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
-  pinMode(echoPin, INPUT); // Sets the echoPin as an Input
+  pinMode(forwardTrigPin, OUTPUT); // Sets the trigPin as an Output
+  pinMode(forwardEchoPin, INPUT); // Sets the echoPin as an Input
   Serial.begin(9600); // Starts the serial communication
 
   //Setting up motor pins
-  pinMode (a1, OUTPUT);
-  pinMode (a2, OUTPUT);
-  pinMode (b1, OUTPUT);
-  pinMode (b2, OUTPUT);
+  pinMode (leftTireForward, OUTPUT);
+  pinMode (leftTireBackward, OUTPUT);
+  pinMode (rightTireForward, OUTPUT);
+  pinMode (rightTireBackward, OUTPUT);
 
+  digitalWrite(leftTireForward, LOW);
+  digitalWrite(leftTireBackward, LOW);
+  digitalWrite(rightTireForward, LOW);
+  digitalWrite(rightTireBackward, LOW);
+  
   //Setting up servoPins
   pinMode(sonarServoPin, OUTPUT);
   pinMode(gripperPin, OUTPUT);
   digitalWrite(sonarServoPin, LOW);
 }
-//const int pina1 = ;
-// analogWrite(pina1, 255)
 
+int number = 0;
 
 //===== [LOOP] =====
 void loop(){
-
-  turnRight();
-  //lookForward();
-  //lookLeft();
-  //lookRight();
-  //gripperOpen();
-  // moveForward();
-  // evadeCollision3();  
-  //gripperClose();
- // printDistance();
+  
+//  Serial.print("LOOPCOUNTER: ");
+//  Serial.println(number);
+//  continuousForward();
+//  clearMotors();
+//  evadeCollision5();  
+//
+// number+=1;
 }
 
+
+void lookForward(){
+  
+  servo(sonarServoPin, sonarServoCenterPulse);
+  delay(200);
+}
+
+void lookLeft(){
+  
+  servo(sonarServoPin, sonarServoMaxPulse);
+  delay(200);
+}
+
+void lookRight(){
+  
+  servo(sonarServoPin, sonarServoMinPulse);
+  delay(200);
+}
+
+
+void readLeft(){
+  
+  //lookLeft();
+  servo(sonarServoPin, sonarServoMaxPulse);
+  delay(80);
+
+  //leftDistance();
+  printLDistance();
+}
+
+void readForward(){
+
+  lookForward();
+  forwardDistance();
+}
+
+void readRight(){
+
+   //lookRight();
+   servo(sonarServoPin, sonarServoMinPulse);
+   delay(80);
+   //rightDistance();
+   printRDistance();
+}
+
+
 /*
-  moveForward
-  if(calcDistance <= cDistance){
-    scan() => sonarServo goes from left to right checking if calcDistance > cDistance
-    if calcDistance in lookLeft() > cDistance => turnLeft() for a certain milliseconds => moveForward;
-    if calcDistance in lookRight() > cDistance => turnRight() for a certain milliseconds => moveForward;
-    if calcDistance in lookLeft() & lookRight() < cDistance()=> moveBackward() for a certain milliseconds
-     then lookLeft() && lookRight()
-      if calcDistance in lookLeft() > cDistance => turnLeft() for a certain milliseconds => moveForward;
-      if calcDistance in lookRight() > cDistance => turnRight() for a certain milliseconds => moveForward;
+ * change the comparators in evadeColl5 to actual methods that return ldistance, rdistance
+ * while LeftSonarSensorDistance < upperLimitDistance... run code below, if it's higher, turnLeft
+  continuousForward()
+  clearMotors();
+  readLeft()-> lDistance updated
+  readRight()->rDistance updated
+    if lDistance > cDistance => turnLeft() for a certain milliseconds => moveForward;
+    if rDistance > cDistance => turnRight() for a certain milliseconds => moveForward;
+    if calcDistance in lDistance & rDistance < cDistance => moveBackward() for a certain milliseconds
+     then readLeft()-> update lDistance
+          readRight()-> update rDistance
+      if lDistance > cDistance => turnLeft() for a certain milliseconds => moveForward;
+      if rDistance > cDistance => turnRight() for a certain milliseconds => moveForward;
+
+      at every interval, scanDistance(){scanLeft, scanForward},if ldistance>cDistance,turnleft, if fdistance>cDistance, else turn right
   }
 */
-void evadeCollision4(){
+void evadeCollision5(){
+  
+
+  lookLeft();
+  Serial.println("I looked left");
+  if(leftDistance() > cDistance){
+     Serial.println("I read left");
+     turnLeft(); 
+    
+    }else if(leftDistance() <= cDistance){
+      Serial.println("I read right");
+      readRight();
       
+      if(rightDistance() > cDistance){
+       Serial.println("I turn right");
+      turnRight(); 
+      } else{ //Use millis
+      Serial.println("Backward occurs");
+      //if(leftDist <= cDistance && rightDist <= cDistance)
+       Serial.println("Backward POGGERS1");
+      moveBackward();
+      delay(70);
+      neoMoveBackward();
+      Serial.println("Backward POGGERS2");
+     // delay(200);
+       Serial.println("I read left");
+      readLeft();
+      if(leftDistance() > cDistance){
+          Serial.println("I turn left");
+          turnLeft();
+        }
+     // delay(200);
+    //  readRight();
+     // delay(200);
+    //  lookForward();
+   //   Serial.println("Back to looking forward 2");
+     // delay(200);
+      else if(leftDistance() < cDistance){
+        Serial.println("I read right");
+        readRight();
+
+        if(rightDistance() > cDistance){
+          Serial.println("I turn right");
+          turnRight();
+          }
+      //neoTurnLeft();
+      //Serial.println("I TurnLeft");
+     // turnLeft(); 
+      //delay(200);
+      }
+   //   else if(rDistance > cDistance){
+      //neoTurnRight();
+ //     Serial.println("I TurnLRight");
+    //  turnRight();
+      //delay(200);
+     // }
+      }  
+    }
+     
 }
 
 /*
-Modify scan method to moveforward, then scan for second
-
+checks left,if possible => turnLeft
+checks forward, if possible => go forward
+turnRight if both above cconditions fail
+I can use either delay or microprocessor
 */
-//void evadeCollision3(){//Movement logic using millis
-// 
-// unsigned long currentMillis_1 =millis();
-// printDistance();
-// 
-//  Serial.print("Time is:");
-//  Serial.println(currentMillis_1);
+//void scan(){
 //
-//  moveForward();
-//
-//  if(calculateDistance()<= cDistance){
-//      clearMotors();
-//
-//      if(currentMillis_1 - previousMillis_1 >= interval_1 ){  //if after 0,5s
-//        previousMillis_1 = millis();
-//          if(scan()>=30 && scan()< 90){
-//            clearMotors();
-//            turnRight();
-//            delay(80);
-//          }else if(scan() > 90 && scan()<=150){
-//            clearMotors();
-//            turnLeft();
-//            delay(80);
-//          }else if(scan() == 90){
-//            clearMotors();
-//            moveForward();
-//            delay(80);
-//          }
-//        }   
-//      }
-//      clearMotors();
-// }
-//
-//
+//  readLeft();
+//  if(lDistance > cDistance){
+//        //turnLeft();
+//        //neoTurnLeft();
+//        delay(400);
+//  }else{
+//      readForward();
+//      if(fDistance > cDistance){
+//       //moveForward();
+//       neoMoveForward();
+//       delay(400);
+//      } else{
+//          //turnRight();
+//          //lookRight();
+//          neoTurnRight();
+//          delay(400);
+//        }
+//    }
+//    lookForward();
+// //   Serial.println("Back to looking forward");
+//}
+
+void continuousForward(){
+  lookForward();
+  printDistance();
+  Serial.println("I lookForward");
+//  delay(200);
+  while(calculateDistance() > cDistance){
+     moveForward();
+     neoMoveForward();
+   //  Serial.println("calculateDistance() higher");
+    }
+   
+    Serial.println("cDistance higher");
+}
+
+
+
+//interrupt
+void evadeCollision2(){//Movement logic using millis
+ 
+ unsigned long currentMillis_1 =millis();
+ printDistance();
+ 
+  Serial.print("Time is:");
+  Serial.println(currentMillis_1);
+  
+   moveForward();
+   if(calculateDistance()<= cDistance){ //if distance<30 
+   // printDistance();
+    //clearMotors();
+    turnRight();                //device turns right 
+    
+    if(currentMillis_1 - previousMillis_1 >= interval_1 ){  //if after 0,6s, run this
+         //clearMotors();
+          previousMillis_1 = millis();
+          if(calculateDistance() <= cDistance){                       // and distance is still less than 60, turn left
+            //clearMotors();
+              while(calculateDistance() <= cDistance){        //while loop to ensure the device turns left completely
+                 Serial.println("Stuck in while loop");
+                turnLeft();
+                printDistance();
+//                if(currentMillis_1 - previousMillis_1 >= interval_2 ){  //  if stuck in turnLeft for an amount of time,goBackwards, after an amount of time,break
+//                    moveBackward();
+//                    delay(400);
+//                    if(currentMillis_1 - previousMillis_1 > interval_3){
+//                      break;
+//                      }
+//                  }
+              }
+              
+            }
+          // clearMotors();                                               //then moveForward()
+          moveForward();
+      }
+    }
+  }
+
+
 
 void servo(int pin, int length){
   
@@ -197,21 +356,6 @@ void servo(int pin, int length){
   delayMicroseconds(length); //in microseconds
   digitalWrite(pin,LOW);
   delay(20);
-}
-
-void lookForward(){
-  
-  servo(sonarServoPin, sonarServoCenterPulse);
-}
-
-void lookLeft(){
-  
-  servo(sonarServoPin, sonarServoMaxPulse);
-}
-
-void lookRight(){
-  
-  servo(sonarServoPin, sonarServoMinPulse);
 }
 
 void gripperOpen(){
@@ -238,45 +382,6 @@ void gripperClose(){
   then moveForward;
   
 */
-
-void evadeCollision2(){//Movement logic using millis
- 
- unsigned long currentMillis_1 =millis();
- printDistance();
- 
-  Serial.print("Time is:");
-  Serial.println(currentMillis_1);
-  
-   moveForward();
-   if(calculateDistance()< cDistance){ //if distance<30 
-   // printDistance();
-    clearMotors();
-    turnRight();                //device turns right 
-    
-    if(currentMillis_1 - previousMillis_1 >= interval_1 ){  //if after 0,6s, run this
-         clearMotors();
-          previousMillis_1 = millis();
-          if(calculateDistance()< cDistance){                       // and distance is still less than 60, turn left
-            clearMotors();
-              while(calculateDistance() < cDistance){        //while loop to ensure the device turns left completely
-                 Serial.println("Stuck in while loop");
-                turnLeft();
-                printDistance();
-                if(currentMillis_1 - previousMillis_1 >= interval_2 ){  //  if stuck in turnLeft for an amount of time,goBackwards, after an amount of time,break
-                    moveBackward();
-                    if(currentMillis_1 - previousMillis_1 > interval_3){
-                      break;
-                      }
-                  }
-              }
-              clearMotors();
-            }
-           clearMotors();                                               //then moveForward()
-          moveForward();
-      }
-    }
-  }
-
 
 
 void evadeCollision(){//Movement logic using millis
@@ -311,48 +416,48 @@ void evadeCollision(){//Movement logic using millis
   }
 
 void moveForward(){
-  analogWrite(a2,180);   // turns left tire forward
-  analogWrite(b1,180);  //turns right tire forward
-  analogWrite(a1, 0);   //left tire backward 0
-  analogWrite(b2, 0);   //right tire backward 0
+  analogWrite(leftTireForward,160);   // turns left tire forward
+  analogWrite(rightTireForward,160);  //turns right tire forward
+  analogWrite(leftTireBackward, 0);   //left tire backward 0
+  analogWrite(rightTireBackward, 0);   //right tire backward 0
   neoMoveForward();
   }
 
 void turnRight(){ //This moves the my left tire forwards and stops the right tire from rotating
-  analogWrite(a2,100);  //left tire forward
-  analogWrite(b2,100);  //right tire backward
-  analogWrite(a1, 0);   //left tire backward 0
-  analogWrite(b1, 0);   //right tire forward 0
+  analogWrite(leftTireForward,160);  //left tire forward
+  analogWrite(rightTireBackward,160);  //right tire backward
+  analogWrite(leftTireBackward, 0);   //left tire backward 0
+  analogWrite(rightTireForward, 0);   //right tire forward 0
   neoTurnRight();
 }
   
 void turnLeft(){ //This moves the my left tire backwards and stops the right tire from rotating
-  analogWrite(a1,255);  //left tire backward
-  analogWrite(b1,255);  //right tire forward
-  analogWrite(a2, 0);   //left tire forward 0
-  analogWrite(b2, 0);   //right tire backward 0
+  analogWrite(leftTireBackward,160);  //left tire backward
+  analogWrite(rightTireForward,160);  //right tire forward
+  analogWrite(leftTireForward, 0);   //left tire forward 0
+  analogWrite(rightTireBackward, 0);   //right tire backward 0
   neoTurnLeft();
 }
 
 void moveBackward(){ //Moves both tires backwards
-  analogWrite(b2,255);  //right tire backward
-  analogWrite(a1,255);  //turns left tire backward
-  analogWrite(b1,0);    //right tire forward 0
-  analogWrite(a2,0);    //left forward 0
+  analogWrite(rightTireBackward,160);  //right tire backward
+  analogWrite(leftTireBackward,160);  //turns left tire backward
+  analogWrite(rightTireForward,0);    //right tire forward 0
+  analogWrite(leftTireForward,0);    //left forward 0
   neoMoveBackward();
 }
 
 void clearMotors(){ //Stops motor by setting both tires to the same signal
-  analogWrite(b2,0);   // truerns right tire 0
-  analogWrite(a1,0); //turns left tire 0
-  analogWrite(b1,0);   // truerns right tire 0
-  analogWrite(a2,0); //turns left tire 0
+  analogWrite(rightTireBackward,0);   // truerns right tire 0
+  analogWrite(leftTireBackward,0); //turns left tire 0
+  analogWrite(rightTireForward,0);   // truerns right tire 0
+  analogWrite(leftTireForward,0); //turns left tire 0
 }
 
 void neoMoveForward(){
   int n1 = 0;       //backleft
   int n2 = 1;       //backright
-  int n3 =2;        //topright
+  int n3 = 2;        //topright
   int n4 = 3;       //topleft
    strip.setPixelColor(n4,255, 0,0); //means topleft is set to green (g,r,b)
    strip.setPixelColor(n3, 255, 0 , 0); //means topright is set to green (g,r,b)
@@ -364,7 +469,7 @@ void neoMoveForward(){
 void neoTurnRight(){
   int n1 = 0;       //backleft
   int n2 = 1;       //backright
-  int n3 =2;        //topright
+  int n3 = 2;        //topright
   int n4 = 3;       //topleft
    strip.setPixelColor(n4,0, 0,0); //means topleft is set to green (g,r,b)
    strip.setPixelColor(n3, 255, 0 , 0); //means topright is set to green (g,r,b)
@@ -376,7 +481,7 @@ void neoTurnRight(){
 void neoTurnLeft(){
   int n1 = 0;       //backleft
   int n2 = 1;       //backright
-  int n3 =2;        //topright
+  int n3 = 2;        //topright
   int n4 = 3;       //topleft
    strip.setPixelColor(n4,255, 0,0); //means topleft is set to green (g,r,b)
    strip.setPixelColor(n3, 0, 0 , 0); //means topright is set to green (g,r,b)
@@ -388,7 +493,7 @@ void neoTurnLeft(){
 void neoMoveBackward(){
   int n1 = 0;       //backleft
   int n2 = 1;       //backright
-  int n3 =2;        //topright
+  int n3 = 2;        //topright
   int n4 = 3;       //topleft 
    strip.setPixelColor(n4,0, 0,0); //means topleft is set to green (g,r,b)
    strip.setPixelColor(n3, 0, 0 , 0); //means topright is set to green (g,r,b)
@@ -398,17 +503,17 @@ void neoMoveBackward(){
 }
 
 int calculateDistance(){ //Calculates distance to the sonar sensor
-// Clears the trigPin
-  digitalWrite(trigPin, LOW);
+  // Clears the trigPin
+  digitalWrite(forwardTrigPin, LOW);
   delayMicroseconds(2);
 
   // Sets the trigPin on HIGH state for 10 micro seconds
-  digitalWrite(trigPin, HIGH);
+  digitalWrite(forwardTrigPin, HIGH);
   delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
+  digitalWrite(forwardTrigPin, LOW);
 
   // Reads the echoPin, returns the sound wave travel time in microseconds
-  duration = pulseIn(echoPin, HIGH);
+  duration = pulseIn(forwardEchoPin, HIGH);
 
   // Calculating the distance
   int distance = duration * 0.034 / 2;
@@ -416,8 +521,165 @@ int calculateDistance(){ //Calculates distance to the sonar sensor
   return distance;
 }
 
+
+
+void forwardDistance(){
+   // Clears the trigPin
+  digitalWrite(forwardTrigPin, LOW);
+  delayMicroseconds(2);
+
+  // Sets the trigPin on HIGH state for 10 micro seconds
+  digitalWrite(forwardTrigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(forwardTrigPin, LOW);
+
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+  duration = pulseIn(forwardEchoPin, HIGH);
+
+  // Calculating the distance
+  int distance = duration * 0.034 / 2;
+
+  fDistance = distance;
+}
+
+int leftDistance(){
+    // Clears the trigPin
+  digitalWrite(forwardTrigPin, LOW);
+  delayMicroseconds(2);
+
+  // Sets the trigPin on HIGH state for 10 micro seconds
+  digitalWrite(forwardTrigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(forwardTrigPin, LOW);
+
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+  duration = pulseIn(forwardEchoPin, HIGH);
+
+  // Calculating the distance
+  int lDistance = duration * 0.034 / 2;
+
+  leftDist = lDistance; 
+  return lDistance;
+}
+void printLDistance(){ //Prints the distance calculated
+// Prints the distance on the Serial Monitor
+  //leftDistance();
+  Serial.print("LDistance: ");
+//  Serial.println(lDistance);
+  Serial.println(leftDistance());
+}
+
+
+int rightDistance(){
+  // Clears the trigPin
+  digitalWrite(forwardTrigPin, LOW);
+  delayMicroseconds(2);
+
+  // Sets the trigPin on HIGH state for 10 micro seconds
+  digitalWrite(forwardTrigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(forwardTrigPin, LOW);
+
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+  duration = pulseIn(forwardEchoPin, HIGH);
+
+  // Calculating the distance
+  int rDistance = duration * 0.034 / 2;
+
+  rightDist = rDistance;
+  //rDistance = distance; 
+  return rDistance;
+}
+void printRDistance(){ //Prints the distance calculated
+// Prints the distance on the Serial Monitor
+  //rightDistance();
+  Serial.print("RDistance: ");
+  //Serial.println(rDistance);
+  Serial.println(rightDistance());
+}
+
+
+
 void printDistance(){ //Prints the distance calculated
 // Prints the distance on the Serial Monitor
   Serial.print("Distance: ");
   Serial.println(calculateDistance());
+}
+
+/*
+  moveForward
+  if(calcDistance <= cDistance){
+    scan() => sonarServo goes from left to right checking if calcDistance > cDistance
+    if calcDistance in lookLeft() > cDistance => turnLeft() for a certain milliseconds => moveForward;
+    if calcDistance in lookRight() > cDistance => turnRight() for a certain milliseconds => moveForward;
+    if calcDistance in lookLeft() & lookRight() < cDistance()=> moveBackward() for a certain milliseconds
+     then lookLeft() && lookRight()
+      if calcDistance in lookLeft() > cDistance => turnLeft() for a certain milliseconds => moveForward;
+      if calcDistance in lookRight() > cDistance => turnRight() for a certain milliseconds => moveForward;
+
+      at every interval, scanDistance(){scanLeft, scanForward},if ldistance>cDistance,turnleft, if fdistance>cDistance, else turn right
+  }
+*/
+
+void evadeCollision4(){
+
+  unsigned long currentMillis_1 = millis();
+  printDistance();
+
+  Serial.print("Time is: ");
+  Serial.println(currentMillis_1);
+
+  moveForward();
+
+  if(calculateDistance() <= cDistance){
+      clearMotors();
+      lookLeft();
+      
+      if(calculateDistance() > cDistance ){
+          turnLeft();
+          delay(400);
+          //if(currentMillis_1 - previousMillis_1 >= interval_1){
+            //  previousMillis_1 = millis();
+              moveForward();
+           // }
+      }else if(calculateDistance() <= cDistance){
+            lookRight();
+
+            if(calculateDistance() > cDistance){
+                turnRight();
+                delay(400);
+                //if(currentMillis_1 - previousMillis_1 >= interval_1){
+                 //   previousMillis_1 = millis();
+                    moveForward();
+                 // }
+            }else if(calculateDistance() <= cDistance){
+                moveBackward();
+                delay(400);
+               // if(currentMillis_1 - previousMillis_1 >= interval_2){
+                 // previousMillis_1 = millis();
+                    clearMotors();
+                    lookLeft();
+                    if(calculateDistance() > cDistance){
+                      turnLeft();
+                      delay(400);
+                    //  if(currentMillis_1 - previousMillis_1 >= interval_1){
+                      //    previousMillis_1 = millis();
+                          moveForward();
+                     // }
+                    }else if(calculateDistance() <= cDistance){
+                          lookRight();
+                          if(calculateDistance() > cDistance){
+                              turnRight();
+                              delay(400);
+                              // if(currentMillis_1 - previousMillis_1 >= interval_1){
+                               //    previousMillis_1 = millis();
+                                   moveForward();
+                               // }
+                          }
+                      }
+              //  }
+          }
+      }
+    }
+ 
 }
