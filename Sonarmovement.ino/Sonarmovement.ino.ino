@@ -3,19 +3,21 @@
 The sensor is composed of two ultrasonic transducers. One is transmitter which outputs ultrasonic sound pulses and the other is receiver which listens for reflected waves. 
 It’s basically a SONAR which is used in submarines for detecting underwater objects.
 
-Trig 10 -> Green wire sends  ultrasonic wave
-Echo 9  -> Yellow wire listens for reflected signal
+Trig wire-> Green wire sends  ultrasonic wave
+Echo wire-> Yellow wire listens for reflected signal
 Considering the travel time and the speed of the sound you can calculate the distance.
 
-===================[CURRENT FAULTS]===================
-  change moveBackwards to turn 180 degrees
-  Ask for side sensor to ensure car stays in the middle of the lane
-  Thought process is, side sonar checks if there's an open lane to teh side of the car, if the space is higher than an upperLimit(ensure it doesnt enter a corner)
-  the car turns to the side
+===================[CURRENT TASKS]===================
+  add a turn 180 degrees in the right direction method
+  add a method that ensures car stays in the middle of the track by keeping a distance to teh walls while moving
+  add a method that makes car turnLeft if leftSonarSensor_Distance > upperLimit_Distance, meaning if it senses a lot of space to the left
+  if leftSonarSensor_Distance < competentSideDistance, moveForward. If leftSonarSensor_Distance > competentSideDistance &&  leftSonarSensor_Distance < upperLimit_Distance
+  turnLeft till leftSonarSensor_Distance < competentSideDistance
   could use a while loop, while()=> continuosForward, evadeCollision5
   if sideDistance > upperLimit, turnLeft/turnRight
+  
+  optimise wire(cut that motherfucker)
 ===================[FUTURE TASKS]===================
-
   Then bluetooth configuration(Search bluetooth 2 way connector)
   Learn how to use bluetooth to activate robot(relay race related)
 */
@@ -74,7 +76,7 @@ int distance;
 #define rightTireBackward A3
 
 
-const int cDistance = 13;
+const int cDistance = 15; //13
 int leftDist = 0;
 int fDistance = 0;
 int rightDist = 0;
@@ -147,40 +149,18 @@ void lookForward(){
 void lookLeft(){
   
   servo(sonarServoPin, sonarServoMaxPulse);
-  delay(200);
+  delay(80);
+//   printLDistance();
 }
 
 void lookRight(){
   
   servo(sonarServoPin, sonarServoMinPulse);
-  delay(200);
-}
-
-
-void readLeft(){
-  
-  //lookLeft();
-  servo(sonarServoPin, sonarServoMaxPulse);
   delay(80);
-
-  //leftDistance();
-  printLDistance();
+//    printRDistance();
 }
 
-void readForward(){
 
-  lookForward();
-  forwardDistance();
-}
-
-void readRight(){
-
-   //lookRight();
-   servo(sonarServoPin, sonarServoMinPulse);
-   delay(80);
-   //rightDistance();
-   printRDistance();
-}
 
 
 /*
@@ -203,33 +183,32 @@ void readRight(){
 */
 void evadeCollision5(){
   
-
   lookLeft();
-  Serial.println("I looked left");
+  //Serial.println("I looked left");
   if(leftDistance() > cDistance){
-     Serial.println("I read left");
+//     Serial.println("I read left");
      turnLeft(); 
     
     }else if(leftDistance() <= cDistance){
-      Serial.println("I read right");
-      readRight();
+//      Serial.println("I read right");
+      lookRight();
       
       if(rightDistance() > cDistance){
-       Serial.println("I turn right");
+//       Serial.println("I turn right");
       turnRight(); 
       } else{ //Use millis
-      Serial.println("Backward occurs");
+//      Serial.println("Backward occurs");
       //if(leftDist <= cDistance && rightDist <= cDistance)
-       Serial.println("Backward POGGERS1");
+//       Serial.println("Backward POGGERS1");
       moveBackward();
       delay(70);
       neoMoveBackward();
-      Serial.println("Backward POGGERS2");
+//      Serial.println("Backward POGGERS2");
      // delay(200);
-       Serial.println("I read left");
-      readLeft();
+//       Serial.println("I read left");
+      lookLeft();
       if(leftDistance() > cDistance){
-          Serial.println("I turn left");
+//          Serial.println("I turn left");
           turnLeft();
         }
      // delay(200);
@@ -239,11 +218,11 @@ void evadeCollision5(){
    //   Serial.println("Back to looking forward 2");
      // delay(200);
       else if(leftDistance() < cDistance){
-        Serial.println("I read right");
-        readRight();
+//        Serial.println("I read right");
+        lookRight();
 
         if(rightDistance() > cDistance){
-          Serial.println("I turn right");
+//          Serial.println("I turn right");
           turnRight();
           }
       //neoTurnLeft();
