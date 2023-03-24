@@ -6,17 +6,17 @@ It’s basically a SONAR which is used in submarines for detecting underwater ob
 Trig wire-> Green wire sends  ultrasonic wave
 Echo wire-> Yellow wire listens for reflected signal
 Considering the travel time and the speed of the sound you can calculate the distance.
-
+  r1 - 12 
+  r2 - 13
 ===================[CURRENT TASKS]===================
-  add a turn 180 degrees in the right direction method
-  add a method that ensures car stays in the middle of the track by keeping a distance to teh walls while moving
+  add a turn 90 degrees in the left direction method
+  add a method that ensures car stays in the middle of the track by keeping a distance to the walls while moving
   add a method that makes car turnLeft if leftSonarSensor_Distance > upperLimit_Distance, meaning if it senses a lot of space to the left
   if leftSonarSensor_Distance < competentSideDistance, moveForward. If leftSonarSensor_Distance > competentSideDistance &&  leftSonarSensor_Distance < upperLimit_Distance
   turnLeft till leftSonarSensor_Distance < competentSideDistance
   could use a while loop, while()=> continuosForward, evadeCollision5
   if sideDistance > upperLimit, turnLeft/turnRight
-  
-  optimise wire(cut that motherfucker)
+
 ===================[FUTURE TASKS]===================
   Then bluetooth configuration(Search bluetooth 2 way connector)
   Learn how to use bluetooth to activate robot(relay race related)
@@ -44,11 +44,11 @@ Considering the travel time and the speed of the sound you can calculate the dis
 #define gripperClosePulse 971
 
 // define sonar sensor pins
-#define forwardTrigPin 7       //trigPin
-#define forwardEchoPin 6       //echoPin
+#define frontSonarSensorTrigPin 7       //trigPin
+#define frontSonarSensorEchoPin 6       //echoPin
 
-#define leftTrigPin 5
-#define leftEchoPin 4
+#define leftSonarSensorTrigPin 5
+#define leftSonarSensorEchoPin 4
 
 #define pixelPIN 8      // pin assigned to NI of neoPixels
 #define NUMPIXELS 4   //number of pixels attached to strip
@@ -75,12 +75,15 @@ int distance;
 #define rightTireForward A2
 #define rightTireBackward A3
 
+#define motorR1 12
+#define motorR2 13
 
 const int cDistance = 15; //13
 int leftDist = 0;
 int fDistance = 0;
 int rightDist = 0;
 
+int leftSonarSensorDistance = 0;
 //Define time for events
 unsigned long previousMillis_1 = 0; //Strore time for 1st event
 unsigned long previousMillis_2 = 0; //stores time for 2nd event
@@ -104,8 +107,11 @@ void setup(){
   strip.setBrightness(50);  //set brightness of strip
   strip.show();             //Initialise all pixels to 'off' 
 
-  pinMode(forwardTrigPin, OUTPUT); // Sets the trigPin as an Output
-  pinMode(forwardEchoPin, INPUT); // Sets the echoPin as an Input
+  pinMode(frontSonarSensorTrigPin, OUTPUT); // Sets the trigPin as an Output
+  pinMode(frontSonarSensorEchoPin, INPUT); // Sets the echoPin as an Input
+  pinMode(leftSonarSensorTrigPin, OUTPUT);
+  pinMode(leftSonarSensorEchoPin, INPUT);
+  
   Serial.begin(9600); // Starts the serial communication
 
   //Setting up motor pins
@@ -129,6 +135,8 @@ int number = 0;
 
 //===== [LOOP] =====
 void loop(){
+
+  rotateRight180();
   
 //  Serial.print("LOOPCOUNTER: ");
 //  Serial.println(number);
@@ -139,6 +147,29 @@ void loop(){
 // number+=1;
 }
 
+void rotateRight180(){
+  
+  int counter = 90;
+  for(int i = 0; i < counter; i++){
+
+    turnRight();
+    delay(9);
+  }
+  clearMotors();
+  //delay(300000000);
+}
+
+void rotateRight90(){
+
+ int counter = 90;
+  for(int i = 0; i < counter; i++){
+
+    turnRight();
+    delay(5);
+  }
+  clearMotors();
+
+}
 
 void lookForward(){
   
@@ -483,16 +514,16 @@ void neoMoveBackward(){
 
 int calculateDistance(){ //Calculates distance to the sonar sensor
   // Clears the trigPin
-  digitalWrite(forwardTrigPin, LOW);
+  digitalWrite(frontSonarSensorTrigPin, LOW);
   delayMicroseconds(2);
 
   // Sets the trigPin on HIGH state for 10 micro seconds
-  digitalWrite(forwardTrigPin, HIGH);
+  digitalWrite(frontSonarSensorTrigPin, HIGH);
   delayMicroseconds(10);
-  digitalWrite(forwardTrigPin, LOW);
+  digitalWrite(frontSonarSensorTrigPin, LOW);
 
   // Reads the echoPin, returns the sound wave travel time in microseconds
-  duration = pulseIn(forwardEchoPin, HIGH);
+  duration = pulseIn(frontSonarSensorEchoPin, HIGH);
 
   // Calculating the distance
   int distance = duration * 0.034 / 2;
@@ -504,16 +535,16 @@ int calculateDistance(){ //Calculates distance to the sonar sensor
 
 void forwardDistance(){
    // Clears the trigPin
-  digitalWrite(forwardTrigPin, LOW);
+  digitalWrite(frontSonarSensorTrigPin, LOW);
   delayMicroseconds(2);
 
   // Sets the trigPin on HIGH state for 10 micro seconds
-  digitalWrite(forwardTrigPin, HIGH);
+  digitalWrite(frontSonarSensorTrigPin, HIGH);
   delayMicroseconds(10);
-  digitalWrite(forwardTrigPin, LOW);
+  digitalWrite(frontSonarSensorTrigPin, LOW);
 
   // Reads the echoPin, returns the sound wave travel time in microseconds
-  duration = pulseIn(forwardEchoPin, HIGH);
+  duration = pulseIn(frontSonarSensorEchoPin, HIGH);
 
   // Calculating the distance
   int distance = duration * 0.034 / 2;
@@ -521,18 +552,19 @@ void forwardDistance(){
   fDistance = distance;
 }
 
+
 int leftDistance(){
     // Clears the trigPin
-  digitalWrite(forwardTrigPin, LOW);
+  digitalWrite(frontSonarSensorTrigPin, LOW);
   delayMicroseconds(2);
 
   // Sets the trigPin on HIGH state for 10 micro seconds
-  digitalWrite(forwardTrigPin, HIGH);
+  digitalWrite(frontSonarSensorTrigPin, HIGH);
   delayMicroseconds(10);
-  digitalWrite(forwardTrigPin, LOW);
+  digitalWrite(frontSonarSensorTrigPin, LOW);
 
   // Reads the echoPin, returns the sound wave travel time in microseconds
-  duration = pulseIn(forwardEchoPin, HIGH);
+  duration = pulseIn(frontSonarSensorEchoPin, HIGH);
 
   // Calculating the distance
   int lDistance = duration * 0.034 / 2;
@@ -548,19 +580,41 @@ void printLDistance(){ //Prints the distance calculated
   Serial.println(leftDistance());
 }
 
-
-int rightDistance(){
+int calculateLeftSonarSensorDistance(){
+  
   // Clears the trigPin
-  digitalWrite(forwardTrigPin, LOW);
+  digitalWrite(leftSonarSensorTrigPin, LOW);
   delayMicroseconds(2);
 
   // Sets the trigPin on HIGH state for 10 micro seconds
-  digitalWrite(forwardTrigPin, HIGH);
+  digitalWrite(leftSonarSensorTrigPin, HIGH);
   delayMicroseconds(10);
-  digitalWrite(forwardTrigPin, LOW);
+  digitalWrite(leftSonarSensorTrigPin, LOW);
 
   // Reads the echoPin, returns the sound wave travel time in microseconds
-  duration = pulseIn(forwardEchoPin, HIGH);
+  duration = pulseIn(leftSonarSensorEchoPin, HIGH);
+
+  // Calculating the distance
+   leftSonarSensorDistance = duration * 0.034 / 2;
+
+   int calculatedleftSonarSensor = leftSonarSensorDistance;
+
+  return calculatedleftSonarSensor;
+  
+}
+
+int rightDistance(){
+  // Clears the trigPin
+  digitalWrite(frontSonarSensorTrigPin, LOW);
+  delayMicroseconds(2);
+
+  // Sets the trigPin on HIGH state for 10 micro seconds
+  digitalWrite(frontSonarSensorTrigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(frontSonarSensorTrigPin, LOW);
+
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+  duration = pulseIn(frontSonarSensorEchoPin, HIGH);
 
   // Calculating the distance
   int rDistance = duration * 0.034 / 2;
@@ -583,82 +637,4 @@ void printDistance(){ //Prints the distance calculated
 // Prints the distance on the Serial Monitor
   Serial.print("Distance: ");
   Serial.println(calculateDistance());
-}
-
-/*
-  moveForward
-  if(calcDistance <= cDistance){
-    scan() => sonarServo goes from left to right checking if calcDistance > cDistance
-    if calcDistance in lookLeft() > cDistance => turnLeft() for a certain milliseconds => moveForward;
-    if calcDistance in lookRight() > cDistance => turnRight() for a certain milliseconds => moveForward;
-    if calcDistance in lookLeft() & lookRight() < cDistance()=> moveBackward() for a certain milliseconds
-     then lookLeft() && lookRight()
-      if calcDistance in lookLeft() > cDistance => turnLeft() for a certain milliseconds => moveForward;
-      if calcDistance in lookRight() > cDistance => turnRight() for a certain milliseconds => moveForward;
-
-      at every interval, scanDistance(){scanLeft, scanForward},if ldistance>cDistance,turnleft, if fdistance>cDistance, else turn right
-  }
-*/
-
-void evadeCollision4(){
-
-  unsigned long currentMillis_1 = millis();
-  printDistance();
-
-  Serial.print("Time is: ");
-  Serial.println(currentMillis_1);
-
-  moveForward();
-
-  if(calculateDistance() <= cDistance){
-      clearMotors();
-      lookLeft();
-      
-      if(calculateDistance() > cDistance ){
-          turnLeft();
-          delay(400);
-          //if(currentMillis_1 - previousMillis_1 >= interval_1){
-            //  previousMillis_1 = millis();
-              moveForward();
-           // }
-      }else if(calculateDistance() <= cDistance){
-            lookRight();
-
-            if(calculateDistance() > cDistance){
-                turnRight();
-                delay(400);
-                //if(currentMillis_1 - previousMillis_1 >= interval_1){
-                 //   previousMillis_1 = millis();
-                    moveForward();
-                 // }
-            }else if(calculateDistance() <= cDistance){
-                moveBackward();
-                delay(400);
-               // if(currentMillis_1 - previousMillis_1 >= interval_2){
-                 // previousMillis_1 = millis();
-                    clearMotors();
-                    lookLeft();
-                    if(calculateDistance() > cDistance){
-                      turnLeft();
-                      delay(400);
-                    //  if(currentMillis_1 - previousMillis_1 >= interval_1){
-                      //    previousMillis_1 = millis();
-                          moveForward();
-                     // }
-                    }else if(calculateDistance() <= cDistance){
-                          lookRight();
-                          if(calculateDistance() > cDistance){
-                              turnRight();
-                              delay(400);
-                              // if(currentMillis_1 - previousMillis_1 >= interval_1){
-                               //    previousMillis_1 = millis();
-                                   moveForward();
-                               // }
-                          }
-                      }
-              //  }
-          }
-      }
-    }
- 
 }
