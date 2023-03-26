@@ -136,9 +136,10 @@ int number = 0;
 void loop(){
   
   //rotateRight180();
+  //moveForward();
      continuousForward();
-     clearMotors();
-     evadeCollision5();
+   clearMotors();
+    // evadeCollision5();
 //  rotateLeft90();
 //  Serial.print("LOOPCOUNTER: ");
 //  Serial.println(number);
@@ -440,13 +441,16 @@ void evadeCollision(){//Movement logic using millis
   }
 
 void moveForward(){
-  //if (calculateLeftSonarSensorDistance() <= 4.7 && calculateLeftSonarSensorDistance() > 1.8){
+  //Serial.print("Left sensor distance: ");
+    //Serial.println(calculateLeftSonarSensorDistance());
+  if (calculateLeftSonarSensorDistance() <= 4.7 && calculateLeftSonarSensorDistance() > 1.0){
+    
     analogWrite(leftTireForward,160);   // turns left tire forward
     analogWrite(rightTireForward,160);  //turns right tire forward
     analogWrite(leftTireBackward, 0);   //left tire backward 0
     analogWrite(rightTireBackward, 0);   //right tire backward 0
     neoMoveForward();
-  //  }
+    } else (clearMotors()); 
   }
 
 void turnRight(){ //This moves the my left tire forwards and stops the right tire from rotating
@@ -611,9 +615,9 @@ double calculateLeftSonarSensorDistance(){
   duration = pulseIn(leftSonarSensorEchoPin, HIGH);
 
   // Calculating the distance
-   leftSonarSensorDistance = duration * 0.034 / 2;
+   double calculatedleftSonarSensor = duration * 0.034 / 2;
 
-   double calculatedleftSonarSensor = leftSonarSensorDistance;
+   leftSonarSensorDistance = calculatedleftSonarSensor;
 
   return calculatedleftSonarSensor;
   
