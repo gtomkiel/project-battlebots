@@ -9,7 +9,6 @@ Considering the travel time and the speed of the sound you can calculate the dis
   r1 - 12 
   r2 - 13
 ===================[CURRENT TASKS]===================
-  add a turn 90 degrees in the left direction method
   add a method that ensures car stays in the middle of the track by keeping a distance to the walls while moving
   add a method that makes car turnLeft if leftSonarSensor_Distance > upperLimit_Distance, meaning if it senses a lot of space to the left
   if leftSonarSensor_Distance < competentSideDistance, moveForward. If leftSonarSensor_Distance > competentSideDistance &&  leftSonarSensor_Distance < upperLimit_Distance
@@ -83,7 +82,7 @@ int leftDist = 0;
 int fDistance = 0;
 int rightDist = 0;
 
-int leftSonarSensorDistance = 0;
+double leftSonarSensorDistance = 0;
 //Define time for events
 unsigned long previousMillis_1 = 0; //Strore time for 1st event
 unsigned long previousMillis_2 = 0; //stores time for 2nd event
@@ -135,9 +134,12 @@ int number = 0;
 
 //===== [LOOP] =====
 void loop(){
-
-  rotateRight180();
   
+  //rotateRight180();
+     continuousForward();
+     clearMotors();
+     evadeCollision5();
+//  rotateLeft90();
 //  Serial.print("LOOPCOUNTER: ");
 //  Serial.println(number);
 //  continuousForward();
@@ -160,6 +162,18 @@ void rotateRight180(){
   clearMotors();
   //delay(300000000);
 }
+
+void rotateLeft90(){
+  int counter = 90;
+  for(int i = 0; i < counter; i++){
+
+    turnLeft();
+    delay(5);
+  }
+  clearMotors();
+  delay(300000000);
+}
+
 
 void rotateRight90(){
 
@@ -208,7 +222,7 @@ void lookRight(){
     if calcDistance in lDistance & rDistance < cDistance => moveBackward() for a certain milliseconds
      then readLeft()-> update lDistance
           readRight()-> update rDistance
-      if lDistance > cDistance => turnLeft() for a certain milliseconds => moveForward;
+      add a method that makes car turnLeft if leftSonarSensor_Distance > upperLimit_Distance, meaning if it senses a lot of space to the left() for a certain milliseconds => moveForward;
       if rDistance > cDistance => turnRight() for a certain milliseconds => moveForward;
 
       at every interval, scanDistance(){scanLeft, scanForward},if ldistance>cDistance,turnleft, if fdistance>cDistance, else turn right
@@ -306,8 +320,8 @@ I can use either delay or microprocessor
 
 void continuousForward(){
   lookForward();
-  printDistance();
-  Serial.println("I lookForward");
+  //printDistance();
+  //Serial.println("I lookForward");
 //  delay(200);
   while(calculateDistance() > cDistance){
      moveForward();
@@ -315,7 +329,7 @@ void continuousForward(){
    //  Serial.println("calculateDistance() higher");
     }
    
-    Serial.println("cDistance higher");
+    //Serial.println("cDistance higher");
 }
 
 
@@ -428,11 +442,13 @@ void evadeCollision(){//Movement logic using millis
   }
 
 void moveForward(){
-  analogWrite(leftTireForward,160);   // turns left tire forward
-  analogWrite(rightTireForward,160);  //turns right tire forward
-  analogWrite(leftTireBackward, 0);   //left tire backward 0
-  analogWrite(rightTireBackward, 0);   //right tire backward 0
-  neoMoveForward();
+  //if (calculateLeftSonarSensorDistance() <= 4.7 && calculateLeftSonarSensorDistance() > 1.8){
+    analogWrite(leftTireForward,160);   // turns left tire forward
+    analogWrite(rightTireForward,160);  //turns right tire forward
+    analogWrite(leftTireBackward, 0);   //left tire backward 0
+    analogWrite(rightTireBackward, 0);   //right tire backward 0
+    neoMoveForward();
+  //  }
   }
 
 void turnRight(){ //This moves the my left tire forwards and stops the right tire from rotating
@@ -582,7 +598,7 @@ void printLDistance(){ //Prints the distance calculated
   Serial.println(leftDistance());
 }
 
-int calculateLeftSonarSensorDistance(){
+double calculateLeftSonarSensorDistance(){
   
   // Clears the trigPin
   digitalWrite(leftSonarSensorTrigPin, LOW);
@@ -599,7 +615,7 @@ int calculateLeftSonarSensorDistance(){
   // Calculating the distance
    leftSonarSensorDistance = duration * 0.034 / 2;
 
-   int calculatedleftSonarSensor = leftSonarSensorDistance;
+   double calculatedleftSonarSensor = leftSonarSensorDistance;
 
   return calculatedleftSonarSensor;
   
