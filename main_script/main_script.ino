@@ -145,20 +145,24 @@ void loop() {
   lineFollow();
 
 
-  // // Clears the trigPin
-  // digitalWrite(trigPin, LOW);
-  // delayMicroseconds(2);
-  // // Sets the trigPin on HIGH state for 10 micro seconds
-  // digitalWrite(trigPin, HIGH);
-  // delayMicroseconds(10);
-  // digitalWrite(trigPin, LOW);
-  // // Reads the echoPin, returns the sound wave travel time in microseconds
-  // duration = pulseIn(echoPin, HIGH);
-  // // Calculating the distance
-  // distance = duration * 0.034 / 2;
-  // // Prints the distance on the Serial Monitor
+  // Clears the trigPin
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  // Sets the trigPin on HIGH state for 10 micro seconds
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+  duration = pulseIn(echoPin, HIGH);
+  // Calculating the distance
+  distance = duration * 0.034 / 2;
+  // Prints the distance on the Serial Monitor
   // Serial.println("Distance: " + distance); 
-  distance = 15;
+  // distance = 15;
+  if (distance < 16)
+  {
+    avoidObstacle();
+  }
 
 }
 
@@ -433,18 +437,12 @@ void beginRace()
 
 void avoidObstacle()
 {
-  // Serial.print(Signal_R1);
-  // Serial.print(Signal_R2);
-  if (distance < 16)
-  {
-
-    turnBeforeObject(255,255);
-    delay(300);
-    moveForward(180,220);
-    delay(1000);
-    moveForward(180,0);
-    delay(400);
-  }
+  turnBeforeObject(255,255);
+  delay(300);
+  moveForward(180,220);
+  delay(1000);
+  moveForward(180,0);
+  delay(400);
 }
 
 
