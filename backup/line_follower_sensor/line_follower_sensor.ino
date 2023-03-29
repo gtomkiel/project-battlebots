@@ -44,6 +44,9 @@ const int GRIPPER_OPEN_PULSE=1600;
 const int GRIPPER_CLOSE_PULSE=971;
 const int GRIPPER_PULSE_REPEAT=10;
 
+
+// bool result = false;
+
 //---------------------------------------------------------------------------------------FUNCTION HEADERS-----------------------------------------------------------------------------------
 // //MOVING FUNTIONS
 void moveForward(int powerA = 255,int powerB = 255);//move the robot forward
@@ -60,8 +63,6 @@ void setup() {
   // setupButtons();
   setupLineSensors();
   calibration();
-  
-
   
   Serial.println("Beginning Race");
   while(!allBlack())
@@ -93,40 +94,43 @@ void loop() {
   lineFollow();
   // isObject();
 
-  if (isObject() == true)
-  {
+  // if (isObject() == true)
+  // {
+  //   avoidObject();
+  // }
+
+
+  // if (result == true)
+  // {
   
-    idle();
-    delay(1000);
-    turnBeforeObject(250, 250);
-    delay(250);
-    moveForward(120, 250);
-    moveBackward(0,0);
-    delay(2350);
-    idle();
-    delay(500);
-    turnBeforeObject(250, 250);
-    delay(105);
+  //   idle();
+  //   delay(1000);
+  //   turnBeforeObject(250, 250);
+  //   delay(250);
+  //   moveForward(120, 250);
+  //   moveBackward(0,0);
+  //   delay(2350);
+  //   idle();
+  //   delay(500);
+  //   turnBeforeObject(250, 250);
+  //   delay(105);
   
-  }
+  // }
   
 
-  // Clears the trigPin
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);
-  // Sets the trigPin on HIGH state for 10 micro seconds
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-  // Reads the echoPin, returns the sound wave travel time in microseconds
-  long duration = pulseIn(echoPin, HIGH);
-  // Calculating the distance
-  distance = duration * 0.034 / 2;
-  // Prints the distance on the Serial Monitor
-  Serial.print("Distance: ");
-  Serial.println(distance);
-  delay(500);
-
+  // // Clears the trigPin
+  // digitalWrite(trigPin, LOW);
+  // // delayMicroseconds(2);
+  // // Sets the trigPin on HIGH state for 10 micro seconds
+  // digitalWrite(trigPin, HIGH);
+  // // delayMicroseconds(10);
+  // digitalWrite(trigPin, LOW);
+  // // Reads the echoPin, returns the sound wave travel time in microseconds
+  // long duration = pulseIn(echoPin, HIGH);
+  // // Calculating the distance
+  // distance = duration * 0.034 / 2;
+  // // Prints the distance on the Serial Monitor
+  // Serial.println("Distance: " + distance);
 }
 
 //MOTOR FUNCTIONS
@@ -302,10 +306,10 @@ void lineFollow()
 {
   if (allBlack() )
   {
-    idle();
+    // idle();
     moveForward(200,200);
     delay(200);
-    idle();
+    // idle();
   }
   else if (allWhite())
     {
@@ -318,24 +322,24 @@ void lineFollow()
   }
   else  if (lineRight())
   {
-    idle();
+    // idle();
     moveForward(200,0);
   }
   else if (lineLeft())
   {
-    idle();
+    // idle();
     moveForward(0,200);
   }
   else if (mostlyBlack())
   {
-    idle();
+    // idle();
     moveForward(200,200);
     delay(200);
-    idle();
+    // idle();
   }
   else
   {
-    idle();
+    // idle();
   }
 }
 
@@ -361,22 +365,22 @@ void beginRace()
  }
 }
 
-bool isObject()
-{
-  if (distance <= 16)
-  {
-    return true;
-  }
-  else
-  {
-    false;
-  }
-}
+// bool isObject()
+// {
+//   if (distance <= 16)
+//   {
+//      result = true;
+//   }
+//   else
+//   {
+//     result = false;
+//   }
+// }
 
 // void avoidObject()
 // {
-//   if (isObject() == true)
-//   {
+//   // if (isObject() == true)
+//   // {
 //     idle();
 //     delay(1000);
 //     turnBeforeObject(250, 250);
@@ -388,7 +392,7 @@ bool isObject()
 //     delay(500);
 //     turnBeforeObject(250, 250);
 //     delay(105);
-//   }
+//   // }
 // }
 
 void turnBeforeObject(int powerA, int powerB)

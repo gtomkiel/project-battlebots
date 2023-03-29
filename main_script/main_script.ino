@@ -7,10 +7,10 @@ const int PIXEL_PIN=4;
 const int PIXEL_NUMBER=4;
 Adafruit_NeoPixel leds(PIXEL_NUMBER,PIXEL_PIN,NEO_RGB +NEO_KHZ800);
 
-// //NEOPIXELS COLORS 
-// const uint32_t RED=leds.Color(255,0,0);
-// const uint32_t YELLOW=leds.Color(234,255,0);
-// const uint32_t BLUE=leds.Color(0,0,255);
+//NEOPIXELS COLORS 
+const uint32_t RED=leds.Color(255,0,0);
+const uint32_t YELLOW=leds.Color(234,255,0);
+const uint32_t BLUE=leds.Color(0,0,255);
 
 //MOTOR PINS
 const int  MOTOR_A1 = 9;//Left wheel backwards
@@ -159,10 +159,10 @@ void loop() {
   // Prints the distance on the Serial Monitor
   // Serial.println("Distance: " + distance); 
   // distance = 15;
-  if (distance < 16)
-  {
-    avoidObstacle();
-  }
+  // if (distance < 16)
+  // {
+  //   avoidObstacle();
+  // }
 
 }
 
@@ -435,15 +435,15 @@ void beginRace()
 //    return microseconds / 29 / 2;
 // }
 
-void avoidObstacle()
-{
-  turnBeforeObject(255,255);
-  delay(300);
-  moveForward(180,220);
-  delay(1000);
-  moveForward(180,0);
-  delay(400);
-}
+// void avoidObstacle()
+// {
+//   turnBeforeObject(255,255);
+//   delay(300);
+//   moveForward(180,220);
+//   delay(1000);
+//   moveForward(180,0);
+//   delay(400);
+// }
 
 
 
