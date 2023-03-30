@@ -20,8 +20,16 @@ Considering the travel time and the speed of the sound you can calculate the dis
 ===================[FUTURE TASKS]===================
   Then bluetooth configuration(Search bluetooth 2 way connector)
   Learn how to use bluetooth to activate robot(relay race related)
-*/
 
+  w1- a4
+  w2- a5
+  purp-a6
+  blue-a7
+  green-d3
+  yellow- d5
+  orange- d6
+  brown-d10
+*/
 
 //Initialising use of Ardafruit
 #include <Adafruit_NeoPixel.h>
@@ -35,8 +43,8 @@ Considering the travel time and the speed of the sound you can calculate the dis
 
 //defining sonarServo rotation in microseconds
 #define sonarServoMinPulse 500
-#define sonarServoCenterPulse 1310
-#define sonarServoMaxPulse 2000
+#define sonarServoCenterPulse 1520
+#define sonarServoMaxPulse 2400
 #define servoPulseRepeat 10   //number of pulses sent to servo,A servo needs at least a minimum of 2 pulses but generally 10 pulses.
 
 //defining gripper rotation 
@@ -44,11 +52,11 @@ Considering the travel time and the speed of the sound you can calculate the dis
 #define gripperClosePulse 971
 
 // define sonar sensor pins
-#define frontSonarSensorTrigPin 7       //trigPin
-#define frontSonarSensorEchoPin 6       //echoPin
+#define frontSonarSensorTrigPin 2       //trigPin
+#define frontSonarSensorEchoPin 7       //echoPin
 
-#define leftSonarSensorTrigPin 5
-#define leftSonarSensorEchoPin 4
+#define leftSonarSensorTrigPin 13
+#define leftSonarSensorEchoPin 12
 
 #define pixelPIN 8      // pin assigned to NI of neoPixels
 #define NUMPIXELS 4   //number of pixels attached to strip
@@ -75,8 +83,8 @@ int distance;
 #define rightTireForward A2
 #define rightTireBackward A3
 
-#define motorR1 12
-#define motorR2 13
+//#define motorR1 undefined
+#define motorR2 4
 
 const int cDistance = 13; //13
 int leftDist = 0;
@@ -230,7 +238,7 @@ void evadeCollision6(){
     }else if(leftDistance() <= cDistance){
       
       lookRight();
-            delay(40);
+      //delay(40);
       Serial.println("I looked right");
       if(rightDistance() > cDistance){
 //      rotateRight90();
