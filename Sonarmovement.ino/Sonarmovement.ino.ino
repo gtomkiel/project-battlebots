@@ -6,8 +6,6 @@ It’s basically a SONAR which is used in submarines for detecting underwater ob
 Trig wire-> Green wire sends  ultrasonic wave
 Echo wire-> Yellow wire listens for reflected signal
 Considering the travel time and the speed of the sound you can calculate the distance.
-  r1 - 12 
-  r2 - 13
 ===================[CURRENT TASKS]===================
   add a method that ensures car stays in the middle of the track by keeping a distance to the walls while moving
   add a method that makes car turnLeft if leftSonarSensor_Distance > upperLimit_Distance, meaning if it senses a lot of space to the left
@@ -25,10 +23,10 @@ Considering the travel time and the speed of the sound you can calculate the dis
   w2- a5
   purp-a6
   blue-a7
-  green-d3
-  yellow- d5
-  orange- d6
-  brown-d10
+  green-a0
+  yellow- a1
+  orange- a2
+  brown-a3
 */
 
 //Initialising use of Ardafruit
@@ -38,22 +36,15 @@ Considering the travel time and the speed of the sound you can calculate the dis
 #endif
 
 //Initialising Servo
-#define sonarServoPin 11 
 #define gripperPin 9
-
-//defining sonarServo rotation in microseconds
-#define sonarServoMinPulse 500
-#define sonarServoCenterPulse 1520
-#define sonarServoMaxPulse 2400
-#define servoPulseRepeat 10   //number of pulses sent to servo,A servo needs at least a minimum of 2 pulses but generally 10 pulses.
 
 //defining gripper rotation 
 #define gripperOpenPulse 1600
 #define gripperClosePulse 971
 
 // define sonar sensor pins
-#define frontSonarSensorTrigPin 2       //trigPin
-#define frontSonarSensorEchoPin 7       //echoPin
+#define frontSonarSensorTrigPin 7     //trigPin
+#define frontSonarSensorEchoPin 4     //echoPin
 
 #define leftSonarSensorTrigPin 13
 #define leftSonarSensorEchoPin 12
@@ -78,22 +69,30 @@ int distance;
 
 //Defining motor pins ; a1,a2 control LEFT_TIRE ; b1,b2 control RIGHT_TIRE
 
-#define leftTireForward A1
-#define leftTireBackward A0
-#define rightTireForward A2
-#define rightTireBackward A3
+//A1 - D11
+//A2 - D5
+//B1 - D6
+//B2 - D10
+//r1-rIGHTwHEEL-d2
+//r2-leftwheel-d3
 
-//#define motorR1 undefined
-#define motorR2 4
+#define leftTireForward 11
+#define leftTireBackward 5
+#define rightTireForward 6
+#define rightTireBackward 10
+
+volatile int countRW = 0;
+volatile int countLW = 0;
+
+#define rightWheelEncoder 2 //R1 encoder
+#define leftWheelEncoder 3  //R2 encoder
 
 const int cDistance = 13; //13
-int leftDist = 0;
 int fDistance = 0;
-int rightDist = 0;
 
 double leftSonarSensorDistance = 0;
 //Define time for events
-unsigned long previousMillis_1 = 0; //Strore time for 1st event
+unsigned long previousMillis_1 = 0; //Stores time for 1st event
 unsigned long previousMillis_2 = 0; //stores time for 2nd event
 
 //If sense infront turn right, if after millis still sense, turn left,while still sense turn left,after go forward
@@ -134,28 +133,55 @@ void setup(){
   digitalWrite(rightTireBackward, LOW);
   
   //Setting up servoPins
-  pinMode(sonarServoPin, OUTPUT);
   pinMode(gripperPin, OUTPUT);
-  digitalWrite(sonarServoPin, LOW);
+
+  //Setup encoders
+
+  attachInterrupt(digitalPinToInterrupt(rightWheelEncoder), updateRightWheel, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(leftWheelEncoder),updateLeftWheel, CHANGE);
 }
 
 int number = 0;
+
+/*
+if(puckPlaced()){
+  openGripper();
+  delay(15000);   //delay 15 seconds
+  start();
+}
+
+
+boolean puckPlaced(){
+
+  if(forwardDistance() < 30){
+    return true;
+  }
+  return false;
+}
+
+boolean mazeStart->true
+start(){
+  while(mazeStart == true){
+
+    pulseForward(20);
+    closeGripper();
+    
+    rotateLeft();
+    continuousForward();
+    .....................
+  }
+}
+*/
+
 
 
 //===== [LOOP] =====
 void loop(){
    unsigned long currentMillis_1 = millis();
-
-   // lookRight();
+   
    //printDistance();
  // testRotateRightCollision();
-  sMoveForward();
-  if(currentMillis_1 - previousMillis_1 >= interval_1 ){  //if after 0,6s, run this
-    previousMillis_1 = currentMillis_1;
-   continuousForward();
-   evadeCollision6();
-  }
-
+ 
 // number+=1;
 }
 
@@ -194,38 +220,54 @@ void rotateRight90(){
   clearMotors();
 }
 
-void lookForward(){
-  
-  servo(sonarServoPin, sonarServoCenterPulse);
-  delay(200);
+// counter functions
+// used to update the counters of the encoders
+
+void updateRightWheel()
+{
+    noInterrupts();
+    countRW++;
+    interrupts();
 }
 
-void lookLeft(){
-  
-  servo(sonarServoPin, sonarServoMaxPulse);
-  delay(80);
-//   printLDistance();
+void updateLeftWheel()
+{
+    noInterrupts();
+    countLW++;
+    interrupts();
 }
 
-void lookRight(){
-  
-  servo(sonarServoPin, sonarServoMinPulse);
-  delay(80);
-//    printRDistance();
+void resetCounters()
+{
+    countRW = 0;
+    countLW = 0;
 }
 
-void testRotateRightCollision(){
+
+/*
+  create pulseForward() method
+
+*/
+
+/*
+ while(calcLeftDistance() < 30){
   
-  if(calculateDistance() < cDistance){
-      lookRight();
-      if(rightDistance() > cDistance){
-//       Serial.println("I turn right");
-     turnRight(); 
-     
-    // rotateRight90();
-      }
-    }
-}
+  continuousForward();
+
+  if(forwardDistance() < cDistance && calcLeftDistance() < 30){
+
+    rotateRight90;
+    pulseForward(20); //20 pulses
+  } 
+ }
+  if(calcLeftDistance() >= 30){
+    
+  pulseForward(20);   //20 pulses
+  rotateLeft90();
+  pulseForward(20);   //20 pulses
+  }  
+ }
+*/
 
 void evadeCollision6(){
   
@@ -255,113 +297,8 @@ void evadeCollision6(){
 }
 
 
-/*
-  continuousForward()
-  clearMotors();
-  readLeft()-> lDistance updated
-  readRight()->rDistance updated
-    if lDistance > cDistance => turnLeft() for a certain milliseconds => moveForward;
-    if rDistance > cDistance => turnRight() for a certain milliseconds => moveForward;
-    if calcDistance in lDistance & rDistance < cDistance => moveBackward() for a certain milliseconds
-     then readLeft()-> update lDistance
-          readRight()-> update rDistance
-      add a method that makes car turnLeft if leftSonarSensor_Distance > upperLimit_Distance, meaning if it senses a lot of space to the left() for a certain milliseconds => moveForward;
-      if rDistance > cDistance => turnRight() for a certain milliseconds => moveForward;
 
-      at every interval, scanDistance(){scanLeft, scanForward},if ldistance>cDistance,turnleft, if fdistance>cDistance, else turn right
-  }
-*/
-void evadeCollision5(){
-  
-  lookLeft();
-  //Serial.println("I looked left");
-  if(leftDistance() > cDistance){
-//     Serial.println("I read left");
-     turnLeft(); 
-    
-    }else if(leftDistance() <= cDistance){
-//      Serial.println("I read right");
-      lookRight();
-      
-      if(rightDistance() > cDistance){
-//       Serial.println("I turn right");
-      turnRight(); 
-      } else{ //Use millis
 
-         rotateRight180();
-//      Serial.println("Backward occurs");
-      //if(leftDist <= cDistance && rightDist <= cDistance)
-//       Serial.println("Backward POGGERS1");
-     // moveBackward();
-     // delay(70);
-     // neoMoveBackward();
-//      Serial.println("Backward POGGERS2");
-     // delay(200);
-//       Serial.println("I read left");
-      lookLeft();
-      if(leftDistance() > cDistance){
-//          Serial.println("I turn left");
-          turnLeft();
-        }
-     // delay(200);
-    //  readRight();
-     // delay(200);
-    //  lookForward();
-   //   Serial.println("Back to looking forward 2");
-     // delay(200);
-      else if(leftDistance() < cDistance){
-//        Serial.println("I read right");
-        lookRight();
-
-        if(rightDistance() > cDistance){
-//          Serial.println("I turn right");
-          turnRight();
-          }
-      //neoTurnLeft();
-      //Serial.println("I TurnLeft");
-     // turnLeft(); 
-      //delay(200);
-      }
-   //   else if(rDistance > cDistance){
-      //neoTurnRight();
- //     Serial.println("I TurnLRight");
-    //  turnRight();
-      //delay(200);
-     // }
-      }  
-    }
-     
-}
-
-/*
-checks left,if possible => turnLeft
-checks forward, if possible => go forward
-turnRight if both above cconditions fail
-I can use either delay or microprocessor
-*/
-//void scan(){
-//
-//  readLeft();
-//  if(lDistance > cDistance){
-//        //turnLeft();
-//        //neoTurnLeft();
-//        delay(400);
-//  }else{
-//      readForward();
-//      if(fDistance > cDistance){
-//       //moveForward();
-//       neoMoveForward();
-//       delay(400);
-//      } else{
-//          //turnRight();
-//          //lookRight();
-//          neoTurnRight();
-//          delay(400);
-//        }
-//    }
-//    lookForward();
-// //   Serial.println("Back to looking forward");
-//}
 
 void continuousForward(){
   lookForward();
@@ -376,49 +313,6 @@ void continuousForward(){
    
     //Serial.println("cDistance higher");
 }
-
-
-
-//interrupt
-void evadeCollision2(){//Movement logic using millis
- 
- unsigned long currentMillis_1 =millis();
- printDistance();
- 
-  Serial.print("Time is:");
-  Serial.println(currentMillis_1);
-  
-   moveForward();
-   if(calculateDistance()<= cDistance){ //if distance<30 
-   // printDistance();
-    //clearMotors();
-    turnRight();                //device turns right 
-    
-    if(currentMillis_1 - previousMillis_1 >= interval_1 ){  //if after 0,6s, run this
-         //clearMotors();
-          previousMillis_1 = millis();
-          if(calculateDistance() <= cDistance){                       // and distance is still less than 60, turn left
-            //clearMotors();
-              while(calculateDistance() <= cDistance){        //while loop to ensure the device turns left completely
-                 Serial.println("Stuck in while loop");
-                turnLeft();
-                printDistance();
-//                if(currentMillis_1 - previousMillis_1 >= interval_2 ){  //  if stuck in turnLeft for an amount of time,goBackwards, after an amount of time,break
-//                    moveBackward();
-//                    delay(400);
-//                    if(currentMillis_1 - previousMillis_1 > interval_3){
-//                      break;
-//                      }
-//                  }
-              }
-              
-            }
-          // clearMotors();                                               //then moveForward()
-          moveForward();
-      }
-    }
-  }
-
 
 
 void servo(int pin, int length){
@@ -634,32 +528,6 @@ void forwardDistance(){
 }
 
 
-int leftDistance(){
-    // Clears the trigPin
-  digitalWrite(frontSonarSensorTrigPin, LOW);
-  delayMicroseconds(2);
-
-  // Sets the trigPin on HIGH state for 10 micro seconds
-  digitalWrite(frontSonarSensorTrigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(frontSonarSensorTrigPin, LOW);
-
-  // Reads the echoPin, returns the sound wave travel time in microseconds
-  duration = pulseIn(frontSonarSensorEchoPin, HIGH);
-
-  // Calculating the distance
-  int lDistance = duration * 0.034 / 2;
-
-  leftDist = lDistance; 
-  return lDistance;
-}
-void printLDistance(){ //Prints the distance calculated
-// Prints the distance on the Serial Monitor
-  //leftDistance();
-  Serial.print("LDistance: ");
-//  Serial.println(lDistance);
-  Serial.println(leftDistance());
-}
 
 double calculateLeftSonarSensorDistance(){
   
@@ -683,39 +551,16 @@ double calculateLeftSonarSensorDistance(){
   return calculatedleftSonarSensor;
   
 }
-
-int rightDistance(){
-  // Clears the trigPin
-  digitalWrite(frontSonarSensorTrigPin, LOW);
-  delayMicroseconds(2);
-
-  // Sets the trigPin on HIGH state for 10 micro seconds
-  digitalWrite(frontSonarSensorTrigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(frontSonarSensorTrigPin, LOW);
-
-  // Reads the echoPin, returns the sound wave travel time in microseconds
-  duration = pulseIn(frontSonarSensorEchoPin, HIGH);
-
-  // Calculating the distance
-  int rDistance = duration * 0.034 / 2;
-
-  rightDist = rDistance;
-  //rDistance = distance; 
-  return rDistance;
-}
-void printRDistance(){ //Prints the distance calculated
-// Prints the distance on the Serial Monitor
-  //rightDistance();
-  Serial.print("RDistance: ");
-  //Serial.println(rDistance);
-  Serial.println(rightDistance());
-}
-
-
-
 void printDistance(){ //Prints the distance calculated
 // Prints the distance on the Serial Monitor
   Serial.print("Distance: ");
   Serial.println(calculateDistance());
 }
+
+
+// sMoveForward();
+//  if(currentMillis_1 - previousMillis_1 >= interval_1 ){  //if after 0,6s, run this
+//    previousMillis_1 = currentMillis_1;
+//   continuousForward();
+//   evadeCollision6();
+//  }
