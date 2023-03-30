@@ -38,7 +38,7 @@ Considering the travel time and the speed of the sound you can calculate the dis
 #endif
 
 //Initialising Servo
-#define sonarServoPin 10 
+#define sonarServoPin 11 
 #define gripperPin 9
 
 //defining sonarServo rotation in microseconds
