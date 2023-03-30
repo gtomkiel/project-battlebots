@@ -29,25 +29,32 @@ Considering the travel time and the speed of the sound you can calculate the dis
   brown-a3
 */
 
-//Initialising use of Ardafruit
+//===== [Initialising Adafruit library] =====
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
 #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
 #endif
 
-//Initialising Servo
-#define gripperPin 9
-
-//defining gripper rotation 
+//===== [Gripper Rotation] ===== 
 #define gripperOpenPulse 1600
 #define gripperClosePulse 971
 
-// define sonar sensor pins
-#define frontSonarSensorTrigPin 7     //trigPin
-#define frontSonarSensorEchoPin 4     //echoPin
+// ===== [PINS] =====
+#define frontSonarSensorTrigPin 7
+#define frontSonarSensorEchoPin 4
 
 #define leftSonarSensorTrigPin 13
 #define leftSonarSensorEchoPin 12
+
+#define gripperPin 9
+
+#define leftTireForward 5
+#define leftTireBackward 11 
+#define rightTireForward 6
+#define rightTireBackward 10
+
+#define leftWheelEncoder 2 //R1 encoder
+#define rightWheelEncoder 3  //R2 encoder
 
 #define pixelPIN 8      // pin assigned to NI of neoPixels
 #define NUMPIXELS 4   //number of pixels attached to strip
@@ -67,8 +74,6 @@ Adafruit_NeoPixel strip(NUMPIXELS, pixelPIN, NEO_GRB + NEO_KHZ800);
 long duration;
 int distance;
 
-//Defining motor pins ; a1,a2 control LEFT_TIRE ; b1,b2 control RIGHT_TIRE
-
 //A1 - D11
 //A2 - D5
 //B1 - D6
@@ -76,16 +81,8 @@ int distance;
 //r1-rIGHTwHEEL-d2
 //r2-leftwheel-d3
 
-#define leftTireForward 11
-#define leftTireBackward 5
-#define rightTireForward 6
-#define rightTireBackward 10
-
 volatile int countRW = 0;
 volatile int countLW = 0;
-
-#define rightWheelEncoder 2 //R1 encoder
-#define leftWheelEncoder 3  //R2 encoder
 
 const int cDistance = 13; //13
 int fDistance = 0;
@@ -138,10 +135,9 @@ void setup(){
   //Setup encoders
 
   attachInterrupt(digitalPinToInterrupt(rightWheelEncoder), updateRightWheel, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(leftWheelEncoder),updateLeftWheel, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(leftWheelEncoder), updateLeftWheel, CHANGE);
 }
 
-int number = 0;
 
 /*
 if(puckPlaced()){
@@ -174,16 +170,39 @@ start(){
 */
 
 
+int number = 0;
 
 //===== [LOOP] =====
 void loop(){
-   unsigned long currentMillis_1 = millis();
-   
+  
+  Serial.print("LOOP: ");
+  Serial.println(number);
+//    discoverTires();
+   moveForwardInTicks(50);
+  Serial.println(countLW);
+  clearMotors();
+  wait(1000);
+//  moveForwardInTicks(2);
+//   wait(4000);
+//   moveForwardInTicks(5);
+//   wait(4000);
+//   moveForwardInTicks(10);
+//   wait(4000);
    //printDistance();
  // testRotateRightCollision();
  
-// number+=1;
+ number+=1;
+ 
 }
+
+  void discoverTires(){
+
+    analogWrite(leftTireForward,0);     // movesLeftTireBackward
+    analogWrite(rightTireForward,0);  //movesRightTireForward
+    analogWrite(leftTireBackward, 0);   //movesLeftTireForward
+    analogWrite(rightTireBackward, 160);  //
+    
+  }
 
 void rotateRight180(){
   
@@ -268,45 +287,45 @@ void resetCounters()
   }  
  }
 */
-
-void evadeCollision6(){
-  
-  lookLeft();
-  Serial.println("I looked left");
-  if(leftDistance() > cDistance){
-
-     turnLeft(); 
-     Serial.println("I turned left");
-    }else if(leftDistance() <= cDistance){
-      
-      lookRight();
-      //delay(40);
-      Serial.println("I looked right");
-      if(rightDistance() > cDistance){
-//      rotateRight90();
-      turnRight(); 
-
-      Serial.println("I turned right");
-      } else{ //Use millis
-
-         //rotateRight180();
-         Serial.println("I rotated 180right");
-      }  
-    }
-     lookForward();
-}
+//
+//void evadeCollision6(){
+//  
+//  lookLeft();
+//  Serial.println("I looked left");
+//  if(leftDistance() > cDistance){
+//
+//     turnLeft(); 
+//     Serial.println("I turned left");
+//    }else if(leftDistance() <= cDistance){
+//      
+//      lookRight();
+//      //delay(40);
+//      Serial.println("I looked right");
+//      if(rightDistance() > cDistance){
+////      rotateRight90();
+//      turnRight(); 
+//
+//      Serial.println("I turned right");
+//      } else{ //Use millis
+//
+//         //rotateRight180();
+//         Serial.println("I rotated 180right");
+//      }  
+//    }
+//     lookForward();
+//}
 
 
 
 
 
 void continuousForward(){
-  lookForward();
+
   //printDistance();
-  //Serial.println("I lookForward");
+ 
 //  delay(200);
   while(calculateDistance() > cDistance){
-     moveForward();
+     mazeMoveForward();
     // neoMoveForward();
    //  Serial.println("calculateDistance() higher");
     }
@@ -357,7 +376,7 @@ void evadeCollision(){//Movement logic using millis
   Serial.print("Time is:");
   Serial.println(currentMillis_1);
    clearMotors();
-   moveForward();
+   mazeMoveForward();
    if(calculateDistance()<= cDistance){ //if distance<30 
    // printDistance();
     clearMotors();
@@ -375,12 +394,26 @@ void evadeCollision(){//Movement logic using millis
               }
             }
            clearMotors();
-          moveForward();
+          mazeMoveForward();
       }
     }
   }
 
-void moveForward(){
+void moveForwardInTicks(int ticks){
+
+  resetCounters();
+
+  while(countLW < ticks){
+
+    analogWrite(leftTireForward,180);   // turns left tire forward
+    analogWrite(rightTireForward,180);  //turns right tire forward
+    analogWrite(leftTireBackward, 0);   //left tire backward 0
+    analogWrite(rightTireBackward, 0);   //right tire backward 0
+    }
+  //clearMotors();
+}
+
+void mazeMoveForward(){
   //Serial.print("Left sensor distance: ");
     //Serial.println(calculateLeftSonarSensorDistance());
   if (calculateLeftSonarSensorDistance() <= 5 && calculateLeftSonarSensorDistance() > 1){
@@ -407,6 +440,8 @@ void moveForward(){
 //    } else (
 //      clearMotors()); 
   }
+
+
 
 void turnRight(){ //This moves the my left tire forwards and stops the right tire from rotating
   analogWrite(leftTireForward,160);  //left tire forward
@@ -557,6 +592,15 @@ void printDistance(){ //Prints the distance calculated
   Serial.println(calculateDistance());
 }
 
+void wait(int timeToWait)
+// waits for an amount of time in milliseconds
+// used to eliminate the need to use the delay() function
+{
+    long time = millis();
+
+    while (millis() < time + timeToWait)
+        ;
+}
 
 // sMoveForward();
 //  if(currentMillis_1 - previousMillis_1 >= interval_1 ){  //if after 0,6s, run this
