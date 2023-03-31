@@ -108,7 +108,7 @@ const double leftLowerLimitDistance = 28;
 int fullLineCounter = 0;
 double fDistance = 0;
 double leftSonarDistance = 0;
-
+boolean startBot = false;
 //Define time for events
 unsigned long previousMillis_1 = 0; //Stores time for 1st event
 unsigned long previousMillis_2 = 0; //stores time for 2nd event
@@ -185,23 +185,51 @@ Test updateLeftSonarSensorDistance using Serial.println() to ensure the leftSona
 void loop(){
 qtr.read(sensorValues);
 
-//Serial.print("1st LineSensor: ");
-//Serial.println(sensorValues[0]);
-//Serial.print(" ");
-//Serial.print("8th LineSensor: ");
-//Serial.print(sensorValues[3]);
-//Serial.print(" ");
-//Serial.println( sensorValues[4]);
-
-//lineSensorMoveForward();
-//moveForwardInTicks(35);
-//clearMotors();
-//basicMoveForward();
-//
-////lineSensorMoveForward();
-//Serial.println(fullLineCounter);
-lineSensorMoveForward();
-//wait(1000000);
+if(puckPlaced()){
+    gripperOpen();
+    delay(7000);
+    lineSensorMoveForward();
+    gripperClose();
+    wait(400);
+    clearMotors();
+    rotateLeft();
+    wait(300);
+    clearMotors();
+    startBot = true;
+    while(startBot){
+      mazeMoveForwardWithTicks();
+      clearMotors();
+      if(forwardDistance() < cDistance){
+        if(LeftSonarSensorDistance() < leftUpperLimitDistance){
+          rotateRight();
+          clearMotors();
+          wait(300);
+          if(forwardDistance() < cDistance){ 
+//        wait(300);
+          rotateRight();
+          }
+        }  
+      }
+      if(LeftSonarSensorDistance() > leftUpperLimitDistance){
+        clearMotors();
+        wait(300);
+        moveForwardInTicks(35);
+        rotateLeft();
+        clearMotors();
+        wait(300);
+        moveForwardInTicks(35);
+      }
+     if(sensorValues[3]>600 && sensorValues[4]>600){
+        basicMoveForward();
+        delay(1000);
+        gripperOpen();
+        moveBackward();
+        delay(1000);
+        startBot = false;
+        clearMotors();
+     }
+    }
+  } 
 }
 /*
 if(puckPlaced()){
@@ -235,22 +263,47 @@ start(){
 void start(){
   if(puckPlaced()){
     gripperOpen();
-    wait(7000);
-    
+    delay(7000);
+    lineSensorMoveForward();
+    gripperClose();
+    wait(400);
+    clearMotors();
+    rotateLeft();
+    wait(300);
+    clearMotors();
+
+    mazeMoveForwardWithTicks();
+    clearMotors();
+    if(forwardDistance() < cDistance){
+      if(LeftSonarSensorDistance() < leftUpperLimitDistance){
+        rotateRight();
+        clearMotors();
+        wait(300);
+        if(forwardDistance() < cDistance){ 
+//        wait(300);
+          rotateRight();
+        }
+      }  
+    }
+   if(LeftSonarSensorDistance() > leftUpperLimitDistance){
+    clearMotors();
+    wait(300);
+    moveForwardInTicks(35);
+    rotateLeft();
+    clearMotors();
+    wait(300);
+    moveForwardInTicks(35);
+   }
   } 
-  
 }
 
 
 //hardcode 25cm at the start of bot, 
 void lineSensorMoveForward(){
-gripperOpen();
+qtr.read(sensorValues);
 if(sensorValues[2] >600 && sensorValues[3]>600 && sensorValues[4]>600 && sensorValues[5]>600){
   basicMoveForward();
-  delay(1200);
-  gripperClose();
-  wait(400);
-  clearMotors();
+  delay(1000);
 //  wait(1000000);
 }
 //}else if(sensorValues[2] >600 && sensorValues[3]>600){
