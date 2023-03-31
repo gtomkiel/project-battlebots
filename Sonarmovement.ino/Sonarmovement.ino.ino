@@ -55,15 +55,6 @@ Considering the travel time and the speed of the sound you can calculate the dis
 #define leftWheelEncoder 2 //R1 encoder
 #define rightWheelEncoder 3  //R2 encoder
 
-//const int sensorOne = A0;
-//const int sensorTwo = A1;
-//const int sensorThree = A2;
-//const int sensorFour = A3;
-//const int sensorFive = A4;
-//const int sensorSix = A5;
-//const int sensorSeven = A6;
-//const int sensorEight = A7;
-
 QTRSensors qtr;
 const uint8_t SensorCount = 8;
 
@@ -114,6 +105,7 @@ volatile int countLW = 0;
 const double cDistance = 13; 
 const double leftUpperLimitDistance = 30;
 const double leftLowerLimitDistance = 28;
+int fullLineCounter = 0;
 double fDistance = 0;
 double leftSonarDistance = 0;
 
@@ -195,15 +187,21 @@ qtr.read(sensorValues);
 
 //Serial.print("1st LineSensor: ");
 //Serial.println(sensorValues[0]);
+//Serial.print(" ");
 //Serial.print("8th LineSensor: ");
 //Serial.print(sensorValues[3]);
 //Serial.print(" ");
 //Serial.println( sensorValues[4]);
 
 //lineSensorMoveForward();
-moveForwardInTicks(25);
-clearMotors();
-wait(1000000);
+//moveForwardInTicks(35);
+//clearMotors();
+//basicMoveForward();
+//
+////lineSensorMoveForward();
+//Serial.println(fullLineCounter);
+lineSensorMoveForward();
+//wait(1000000);
 }
 /*
 if(puckPlaced()){
@@ -242,19 +240,28 @@ void start(){
   } 
   
 }
+
+
 //hardcode 25cm at the start of bot, 
 void lineSensorMoveForward(){
-
-if(sensorValues[3] > 750 && sensorValues[4] > 750){
+gripperOpen();
+if(sensorValues[2] >600 && sensorValues[3]>600 && sensorValues[4]>600 && sensorValues[5]>600){
   basicMoveForward();
-}else if(sensorValues[2] > 750 && sensorValues[3]>750){
-  lineAdjustRight();
-}else if(sensorValues[5] > 800 && sensorValues[4]>800){
-  lineAdjustLeft();
-}else if(sensorValues[0] > 800 && sensorValues[1]>800 && sensorValues[2] > 800 && sensorValues[3]>800 && sensorValues[4]>800 && sensorValues[5]>800 && sensorValues[6]>800 && sensorValues[7]>800){
-  moveForwardInTicks(5);
+  delay(1200);
+  gripperClose();
+  wait(400);
+  clearMotors();
+//  wait(1000000);
 }
-
+//}else if(sensorValues[2] >600 && sensorValues[3]>600){
+//  lineAdjustRight();
+//}else if(sensorValues[5] >600 && sensorValues[4]>600){
+//  lineAdjustLeft();
+//}else if(sensorValues[3]>600 && sensorValues[4]>600){
+//  basicMoveForward();
+////  delay(1500);
+//}
+//
 else{
   clearMotors(); 
  }
