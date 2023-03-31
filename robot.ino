@@ -1,13 +1,15 @@
 //>--[Libraries]
 
 #include <Adafruit_NeoPixel.h>
-#include <QTRSensors.h>
-#include <Servo.h> 
+#include <QTRSensors.h> 
 
 //>--[Pins]
 
 #define PIN        7
 #define NUMPIXELS  4
+
+#define trigPin 13
+#define echoPin 4 
 
 const int grp = 9;
 
@@ -35,6 +37,10 @@ volatile int countR = 0;
 
 int pos = 0; 
 
+volatile long duration;
+volatile int distance;
+
+bool wait = true;
 bool set = false;
 bool solved = false;
 bool victory = false;
@@ -44,15 +50,10 @@ const uint8_t SensorCount = 8;
 
 uint16_t sensorValues[SensorCount];
 
-Servo gripper;
-
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 void setup() {
   Serial.begin(9600);
-
-  gripper.attach(9);
-  gripper.write(180);
 
   qtr.setTypeAnalog();
   qtr.setSensorPins((const uint8_t[]){A7, A6, A5, A4, A3, A2, A1, A0}, SensorCount);
@@ -62,6 +63,8 @@ void setup() {
   pixels.clear();
   pixels.show();
 
+  pinMode(grp, OUTPUT);
+
   pinMode(sensorOne, INPUT);
   pinMode(sensorTwo, INPUT);
   pinMode(sensorThree, INPUT);
@@ -70,6 +73,9 @@ void setup() {
   pinMode(sensorSix, INPUT);
   pinMode(sensorSeven, INPUT);
   pinMode(sensorEight, INPUT);
+
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
 
   pinMode(motorLeftFWD, OUTPUT);
   pinMode(motorRightFWD, OUTPUT);
@@ -86,7 +92,16 @@ void setup() {
 void loop() {  
   qtr.read(sensorValues);
 
-  if (!set)
+  qtr.calibrate();
+
+  pos = qtr.readLineBlack(sensorValues);
+
+
+  if(wait)
+  {
+    detectObject();
+  }
+  else if (!set)
   {
     start();
   }
@@ -116,6 +131,8 @@ void rotationR()
 /* Function handling logic for initiating the line maze and picking up the flag */
 void start()
 {
+  delay(2000);
+
   int lines = 0;
 
   forwardSlow();
@@ -124,12 +141,15 @@ void start()
   {
     qtr.read(sensorValues);
 
-    if (lines > 5)
+    if (lines > 4)
     {
       stop();
-      gripper.write(0);
+      delay(200);
+      analogWrite(grp, 40);
+      delay(50);
+      analogWrite(grp, 0);
       delay(1000);
-      leftTurn(50);
+      leftTurn(28);
       break;
     }
     else
@@ -144,10 +164,10 @@ void start()
   set = true;
 }
 
-/* Function habdling logic for solving the line maze */
+/* Function handling logic for solving the line maze */
 void maze()
 {
-   if (sensorValues[4] > 700 && sensorValues[5] > 700 && sensorValues[6] > 700 && sensorValues[7] > 700)
+   if (sensorValues[4] > 700 && sensorValues[5] > 700 && sensorValues[6] > 700 && sensorValues[7] > 700) // &&
     {
       forward();
       delay(100);
@@ -155,18 +175,24 @@ void maze()
 
       while(true)
       {
+        /* There might be slight issues if two possible ways   */
+        /* are left and right turn. If the robot comes to this */
+        /* section on some weird angle there is a changce that */
+        /* it will interpret it as a finish line of the maze.  */
+
         qtr.read(sensorValues);
 
         if (sensorValues[0] > 700 && sensorValues[1] > 700 && sensorValues[2] > 700 && sensorValues[3] > 700 && sensorValues[4] > 700 && sensorValues[5] > 700 && sensorValues[6] > 700 && sensorValues[7] > 700)
         {
           stop();
-          gripper.write(180);
+          delay(250);
+          analogWrite(grp, 200);
           solved = true;
           break;
         }
         else
         {
-          rightTurn(57);
+          rightTurn(42);
           break;
         }
       }
@@ -185,9 +211,16 @@ void maze()
     }
     else if (sensorValues[0] < 700 && sensorValues[1] < 700 && sensorValues[2] < 700 && sensorValues[3] < 700 && sensorValues[4] < 700 && sensorValues[5] < 700 && sensorValues[6] < 700 && sensorValues[7] < 700)
     {
+      /* Left turns are treated as a part of sequence for dead end spots  */
+      /* If there is no option to go either forward or right it will move */
+      /* forward off the line and make a 90 degree turn left. After it is */
+      /* done the robot checks if there is line, if not then function     */
+      /* leftSpin() is called which forces robot to turn left untill it   */
+      /* finds the line.                                                  */
+
       forward();
       delay(100);
-      leftTurn2(28);
+      leftTurn2(26);
 
       while(true)
       {
@@ -226,7 +259,7 @@ void forward()
 
 void forwardSlow()
 {
-  analogWrite(motorLeftFWD, 130);
+  analogWrite(motorLeftFWD, 140);
   analogWrite(motorRightFWD, 130);
   analogWrite(motorLeftBWD, 0);
   analogWrite(motorRightBWD, 0);
@@ -345,7 +378,8 @@ void leftSpin()
 }
 
 /* Function setting blinking LEDs when the robot is waiting for the start (2 modes available) */
-void lightsIdle(int mode) 
+/* did not test the lights yet but they might be slightly broken or working inconsistently */
+void blink(int mode) 
 {
   switch(mode)
   {
@@ -385,4 +419,30 @@ void lightsIdle(int mode)
     default:
       break;
   }
+}
+
+/* Function returning distance to nearby object (required for the function object() to work)*/
+int getDistance() 
+{
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(5);
+
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  duration = pulseIn(echoPin, HIGH);
+  distance = duration * 0.034 / 2;
+
+  return distance;
+}
+
+void detectObject()
+{
+  int distance = getDistance();
+
+  if(distance < 25) /* Distance from the parking spot to the object will most likely be longer than 15 */
+  {
+    wait = false;
+  } 
 }
