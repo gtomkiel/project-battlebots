@@ -54,6 +54,27 @@ Considering the travel time and the speed of the sound you can calculate the dis
 #define leftWheelEncoder 2 //R1 encoder
 #define rightWheelEncoder 3  //R2 encoder
 
+//===================[QTR 8 SENSOR]============================
+/*
+  w1- a4
+  w2- a5
+  purp-a6
+  blue-a7
+  green-a0
+  yellow- a1
+  orange- a2
+  brown-a3
+*/
+#define ir1 A4
+#define ir2 A5
+#define ir3 A6
+#define ir4 A7
+#define ir5 A0
+#define ir6 A1
+#define ir7 A2
+#define ir8 A3
+
+//================[NEOPIXEL]========================
 #define pixelPIN 8      // pin assigned to NI of neoPixels
 #define NUMPIXELS 4   //number of pixels attached to strip
 
@@ -71,13 +92,6 @@ Adafruit_NeoPixel strip(NUMPIXELS, pixelPIN, NEO_GRB + NEO_KHZ800);
 //define variables
 long duration;
 int distance;
-
-//A1 - D11
-//A2 - D5
-//B1 - D6
-//B2 - D10
-//r1-rIGHTwHEEL-d2
-//r2-leftwheel-d3
 
 volatile int countRW = 0;
 volatile int countLW = 0;
@@ -178,74 +192,10 @@ Test updateLeftSonarSensorDistance using Serial.println() to ensure the leftSona
 */
 //===== [LOOP] =====
 void loop(){
-//rotateLessRight();
-//clearMotors();
-//wait(1000000);
-//  Serial.print("ForwardDistance: ");
-//  Serial.println(forwardDistance());
 
-//moveForwardInTicks(50);
-//clearMotors();
-//wait(1000000);
-//if value too far from wall, tiltLeft till back in range
-//rotateLeft();
-//clearMotors();
-//wait(1000000);
 
-  mazeMoveForwardWithTicks();
-  clearMotors();
-  if(forwardDistance() < cDistance){
-    if(LeftSonarSensorDistance() < leftUpperLimitDistance){
-      rotateRight();
-      clearMotors();
-      wait(600);
-      if(forwardDistance() < cDistance){ 
-//       wait(300);
-       rotateRight();
-      }
-    }  
-  }
-  if(LeftSonarSensorDistance() > leftUpperLimitDistance){
-   clearMotors();
-   wait(600);
-   moveForwardInTicks(35);
-   rotateLeft();
-   clearMotors();
-   wait(600);
-   moveForwardInTicks(35);
-  }
 }
 
-
-/*
- while(calcLeftDistance() < 30){
-  
-  continuousForward();
-
-  if(forwardDistance() < cDistance){
-  
-    updateLeftDistance();
-    if(leftDistance < 30){
-    
-      rotateRight90;
-      if(forwardDistance() < cDistance){
-        updateLeftDistance();
-        if(leftDistance < cDistance){
-          rotateRight90();
-        }
-      }
-    }
-    
-  } 
- }
-  if(calcLeftDistance() >= 30){
-    
-  pulseForward(20);   //20 pulses
-  rotateLeft90();
-  pulseForward(20);   //20 pulses
-  }  
- }
-*/
 void evadeCollision9(){
 
   mazeMoveForwardWithTicks();
@@ -254,8 +204,9 @@ void evadeCollision9(){
     if(LeftSonarSensorDistance() < leftUpperLimitDistance){
       rotateRight();
       clearMotors();
-      
-      if(forwardDistance() < cDistance){    
+      wait(300);
+      if(forwardDistance() < cDistance){ 
+//       wait(300);
        rotateRight();
       }
     }  
@@ -305,52 +256,6 @@ void mazeMoveForwardWithTicks(){
        }   
 //        clearMotors();
 //        neoMoveBackward();
-}
-
-void evadeCollision8(){
-    //turn Left
- 
-while(LeftSonarSensorDistance() < 30){
-
-    continuousForward();
-
-    if(forwardDistance() < cDistance){
-      
-      updateLeftSonarSensorDistance();
-      
-      if(leftSonarDistance < 30){
-
-        rotateRight90();
-        wait(300);
-        clearMotors();
-        if(forwardDistance() < cDistance){
-          
-          updateLeftSonarSensorDistance();
-          if(leftSonarDistance < 30){
-
-            rotateRight90();
-          }else{
-             clearMotors();
-             moveForwardInTicks(92);
-             rotateLeft90();
-             moveForwardInTicks(92);
-            }
-        }
-      }else{
-        clearMotors();
-        moveForwardInTicks(92);
-        rotateLeft90();
-        moveForwardInTicks(92);
-       }
-    }
-  }
-
-  if(LeftSonarSensorDistance() >= 30){
-    clearMotors();
-    moveForwardInTicks(92);
-    rotateLeft90();
-    moveForwardInTicks(92);  
-  }
 }
 
 void rotateLeft90(){
@@ -700,17 +605,3 @@ void wait(int timeToWait)
     long time = millis();
     while (millis() < time + timeToWait);
 }
-
-//void rotateRight180(){
-//  
-//  int ticks = 90;     //tick to rotate
-//  resetCounters();
-//  while(countRW < ticks){
-//    analogWrite(leftTireForward,160);  //left tire forward
-//    analogWrite(rightTireBackward,160);  //right tire backward
-//    analogWrite(leftTireBackward, 0);   //left tire backward 0
-//    analogWrite(rightTireForward, 0);   //right tire forward 0
-//    neoTurnRight(); 
-//  }  
-// // clearMotors();
-//}
