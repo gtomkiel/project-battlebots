@@ -83,7 +83,8 @@ volatile int countRW = 0;
 volatile int countLW = 0;
 
 const double cDistance = 13; 
-const double upperLimit = 30;
+const double leftUpperLimitDistance = 30;
+const double leftLowerLimitDistance = 28;
 double fDistance = 0;
 double leftSonarDistance = 0;
 
@@ -177,24 +178,42 @@ Test updateLeftSonarSensorDistance using Serial.println() to ensure the leftSona
 */
 //===== [LOOP] =====
 void loop(){
-  
+//rotateLessRight();
+//clearMotors();
+//wait(1000000);
+//  Serial.print("ForwardDistance: ");
+//  Serial.println(forwardDistance());
+
+//moveForwardInTicks(50);
+//clearMotors();
+//wait(1000000);
+//if value too far from wall, tiltLeft till back in range
+//rotateLeft();
+//clearMotors();
+//wait(1000000);
+
   mazeMoveForwardWithTicks();
   clearMotors();
   if(forwardDistance() < cDistance){
-
-    rotateRight90();
-    wait(300);
-    clearMotors();
-    if(forwardDistance() < cDistance){    
-       rotateLessRight();
-    }
+    if(LeftSonarSensorDistance() < leftUpperLimitDistance){
+      rotateRight();
+      clearMotors();
+      wait(600);
+      if(forwardDistance() < cDistance){ 
+//       wait(300);
+       rotateRight();
+      }
+    }  
   }
-  if(LeftSonarSensorDistance() > 30){
-    
-   moveForwardInTicks(92);
-   rotateLeft90();
+  if(LeftSonarSensorDistance() > leftUpperLimitDistance){
+   clearMotors();
+   wait(600);
+   moveForwardInTicks(35);
+   rotateLeft();
+   clearMotors();
+   wait(600);
+   moveForwardInTicks(35);
   }
-  
 }
 
 
@@ -232,40 +251,60 @@ void evadeCollision9(){
   mazeMoveForwardWithTicks();
   clearMotors();
   if(forwardDistance() < cDistance){
-
-    rotateRight90();
-    wait(300);
-    clearMotors();
-    if(forwardDistance() < cDistance){    
-       rotateLessRight();
-    }
+    if(LeftSonarSensorDistance() < leftUpperLimitDistance){
+      rotateRight();
+      clearMotors();
+      
+      if(forwardDistance() < cDistance){    
+       rotateRight();
+      }
+    }  
   }
-  if(LeftSonarSensorDistance() > 30){
-    
-   moveForwardInTicks(92);
-   rotateLeft90();
+  if(LeftSonarSensorDistance() > leftUpperLimitDistance){
+   clearMotors();
+   wait(300);
+   moveForwardInTicks(35);
+   rotateLeft();
+   clearMotors();
+   wait(300);
+   moveForwardInTicks(35);
   }
-  
+//  if(LeftSonarDistance()){
+//  
+//  }
 }
+
 
 void mazeMoveForwardWithTicks(){
   //Serial.print("Left sensor distance: ");
     //Serial.println(calculateLeftSonarSensorDistance());
-    if(forwardDistance() > cDistance){
-      if (LeftSonarSensorDistance() <= 14 && LeftSonarSensorDistance() > 1){
-        while(countLW < 1000 && forwardDistance() > cDistance){
-        
-          analogWrite(leftTireForward,200);   // turns left tire forward
-          analogWrite(rightTireForward,200);  //turns right tire forward
+    //if(forwardDistance() > cDistance && LeftSonarSensorDistance() <= 14 && LeftSonarSensorDistance() > 1){
+        while(LeftSonarSensorDistance() <= 14 && LeftSonarSensorDistance() > 1 && countLW < 1000 && forwardDistance() > cDistance){
+
+        if(LeftSonarSensorDistance() > 9.2){
+          analogWrite(leftTireForward,180);   // turns left tire forward
+          analogWrite(rightTireForward,255);  //turns right tire forward
           analogWrite(leftTireBackward, 0);   //left tire backward 0
           analogWrite(rightTireBackward, 0);   //right tire backward 0
           neoMoveForward();
-        }
-      }
-//    else{
-//      clearMotors();
-//      neoMoveBackward();
-   }
+        }else if(LeftSonarSensorDistance() < 4){
+          
+            analogWrite(leftTireForward,255);   // turns left tire forward
+            analogWrite(rightTireForward,180);  //turns right tire forward
+            analogWrite(leftTireBackward, 0);   //left tire backward 0
+            analogWrite(rightTireBackward, 0);   //right tire backward 0
+            neoMoveForward();
+         }else{
+            analogWrite(leftTireForward,200);   // turns left tire forward
+            analogWrite(rightTireForward,200);  //turns right tire forward
+            analogWrite(leftTireBackward, 0);   //left tire backward 0
+            analogWrite(rightTireBackward, 0);   //right tire backward 0
+            neoMoveForward();
+          }
+          
+       }   
+//        clearMotors();
+//        neoMoveBackward();
 }
 
 void evadeCollision8(){
@@ -316,7 +355,7 @@ while(LeftSonarSensorDistance() < 30){
 
 void rotateLeft90(){
   
-  int ticks = 90;
+  int ticks = 50;
   resetCounters();
   while(countLW < ticks ){
     
@@ -331,7 +370,7 @@ void rotateLeft90(){
 
 void rotateRight90(){
 
- int ticks = 50;
+ int ticks = 48;
  resetCounters();
   while(countRW < ticks){
     analogWrite(leftTireForward,200);  //left tire forward
@@ -345,7 +384,7 @@ void rotateRight90(){
 
 void rotateLessRight(){
 
- int ticks = 43;
+ int ticks = 50;
  resetCounters();
   while(countRW < ticks){
     analogWrite(leftTireForward,200);  //left tire forward
@@ -473,7 +512,7 @@ void moveForwardInTicks(int ticks){
 void mazeMoveForward(){
   //Serial.print("Left sensor distance: ");
     //Serial.println(calculateLeftSonarSensorDistance());
-  if (LeftSonarSensorDistance() <= 14 && LeftSonarSensorDistance() > 1){
+  if (LeftSonarSensorDistance() <= leftLowerLimitDistance && LeftSonarSensorDistance() > 1){
     
     analogWrite(leftTireForward,200);   // turns left tire forward
     analogWrite(rightTireForward,200);  //turns right tire forward
@@ -500,17 +539,38 @@ void sMoveForward(){
 //      clearMotors()); 
 }
 
+void rotateRight(){
+
+  int counter = 60;
+
+  for(int i = 0; i < counter; i++){
+
+    turnRight();
+    delay(9);
+  }
+}
+
+void rotateLeft(){
+
+  int counter = 60;
+
+  for(int i = 0; i < counter; i++){
+
+    turnLeft();
+    delay(9);
+  }
+}
 void turnRight(){ //This moves the my left tire forwards and stops the right tire from rotating
-  analogWrite(leftTireForward,160);  //left tire forward
-  analogWrite(rightTireBackward,160);  //right tire backward
+  analogWrite(leftTireForward,200);  //left tire forward
+  analogWrite(rightTireBackward,200);  //right tire backward
   analogWrite(leftTireBackward, 0);   //left tire backward 0
   analogWrite(rightTireForward, 0);   //right tire forward 0
   neoTurnRight();
 }
   
 void turnLeft(){ //This moves the my left tire backwards and stops the right tire from rotating
-  analogWrite(leftTireBackward,160);  //left tire backward
-  analogWrite(rightTireForward,160);  //right tire forward
+  analogWrite(leftTireBackward,200);  //left tire backward
+  analogWrite(rightTireForward,200);  //right tire forward
   analogWrite(leftTireForward, 0);   //left tire forward 0
   analogWrite(rightTireBackward, 0);   //right tire backward 0
   neoTurnLeft();
