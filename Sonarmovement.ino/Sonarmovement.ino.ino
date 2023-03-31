@@ -265,8 +265,9 @@ void mazeMoveForwardWithTicks(){
 //    else{
 //      clearMotors();
 //      neoMoveBackward();
-//    }
+   }
 }
+
 void evadeCollision8(){
     //turn Left
  
