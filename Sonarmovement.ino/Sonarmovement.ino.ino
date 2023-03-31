@@ -29,6 +29,7 @@ Considering the travel time and the speed of the sound you can calculate the dis
 
 //===== [Initialising Adafruit library] =====
 #include <Adafruit_NeoPixel.h>
+#include <QTRSensors.h>
 #ifdef __AVR__
 #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
 #endif
@@ -54,6 +55,20 @@ Considering the travel time and the speed of the sound you can calculate the dis
 #define leftWheelEncoder 2 //R1 encoder
 #define rightWheelEncoder 3  //R2 encoder
 
+//const int sensorOne = A0;
+//const int sensorTwo = A1;
+//const int sensorThree = A2;
+//const int sensorFour = A3;
+//const int sensorFive = A4;
+//const int sensorSix = A5;
+//const int sensorSeven = A6;
+//const int sensorEight = A7;
+
+QTRSensors qtr;
+const uint8_t SensorCount = 8;
+
+uint16_t sensorValues[SensorCount];
+
 //===================[QTR 8 SENSOR]============================
 /*
   w1- a4
@@ -65,14 +80,14 @@ Considering the travel time and the speed of the sound you can calculate the dis
   orange- a2
   brown-a3
 */
-#define ir1 A4
-#define ir2 A5
-#define ir3 A6
-#define ir4 A7
-#define ir5 A0
-#define ir6 A1
-#define ir7 A2
-#define ir8 A3
+#define irSensorOne A4
+#define irSensorTwo A5
+#define irSensorThree A6
+#define irSensorFour A7
+#define irSensorFive A0
+#define irSensorSix A1
+#define irSensorSeven A2
+#define irSensorEight A3
 
 //================[NEOPIXEL]========================
 #define pixelPIN 8      // pin assigned to NI of neoPixels
@@ -125,6 +140,9 @@ void setup(){
   strip.setBrightness(50);  //set brightness of strip
   strip.show();             //Initialise all pixels to 'off' 
 
+  qtr.setTypeAnalog();
+  qtr.setSensorPins((const uint8_t[]){A4,A5,A6,A7,A0,A1,A2,A3}, SensorCount);
+
   pinMode(frontSonarSensorTrigPin, OUTPUT); // Sets the trigPin as an Output
   pinMode(frontSonarSensorEchoPin, INPUT); // Sets the echoPin as an Input
   pinMode(leftSonarSensorTrigPin, OUTPUT);
@@ -146,11 +164,47 @@ void setup(){
   //Setting up servoPins
   pinMode(gripperPin, OUTPUT);
 
+  pinMode(irSensorOne, INPUT);
+  pinMode(irSensorTwo, INPUT);
+  pinMode(irSensorThree, INPUT);
+  pinMode(irSensorFour, INPUT);
+  pinMode(irSensorFive, INPUT);
+  pinMode(irSensorSix, INPUT);
+  pinMode(irSensorSeven, INPUT);
+  pinMode(irSensorEight, INPUT);
+
   //Setup encoders
   attachInterrupt(digitalPinToInterrupt(rightWheelEncoder), updateRightWheel, CHANGE);
   attachInterrupt(digitalPinToInterrupt(leftWheelEncoder), updateLeftWheel, CHANGE);
 }
 
+
+
+
+int number = 0;
+/*
+Test moveForwardInTicks() //values 2,4,5,8,10
+Test rotateRight90        //values 40,45,90
+Test rotateLeft90        //values 40,45,90
+
+Test updateLeftSonarSensorDistance using Serial.println() to ensure the leftSonarDistance is updated
+*/
+//===== [LOOP] =====
+void loop(){
+qtr.read(sensorValues);
+
+//Serial.print("1st LineSensor: ");
+//Serial.println(sensorValues[0]);
+//Serial.print("8th LineSensor: ");
+//Serial.print(sensorValues[3]);
+//Serial.print(" ");
+//Serial.println( sensorValues[4]);
+
+//lineSensorMoveForward();
+moveForwardInTicks(25);
+clearMotors();
+wait(1000000);
+}
 /*
 if(puckPlaced()){
   openGripper();
@@ -180,20 +234,56 @@ start(){
   }
 }
 */
+void start(){
+  if(puckPlaced()){
+    gripperOpen();
+    wait(7000);
+    
+  } 
+  
+}
+//hardcode 25cm at the start of bot, 
+void lineSensorMoveForward(){
 
+if(sensorValues[3] > 750 && sensorValues[4] > 750){
+  basicMoveForward();
+}else if(sensorValues[2] > 750 && sensorValues[3]>750){
+  lineAdjustRight();
+}else if(sensorValues[5] > 800 && sensorValues[4]>800){
+  lineAdjustLeft();
+}else if(sensorValues[0] > 800 && sensorValues[1]>800 && sensorValues[2] > 800 && sensorValues[3]>800 && sensorValues[4]>800 && sensorValues[5]>800 && sensorValues[6]>800 && sensorValues[7]>800){
+  moveForwardInTicks(5);
+}
 
-int number = 0;
-/*
-Test moveForwardInTicks() //values 2,4,5,8,10
-Test rotateRight90        //values 40,45,90
-Test rotateLeft90        //values 40,45,90
+else{
+  clearMotors(); 
+ }
 
-Test updateLeftSonarSensorDistance using Serial.println() to ensure the leftSonarDistance is updated
-*/
-//===== [LOOP] =====
-void loop(){
+}
 
+void lineAdjustRight(){
 
+  analogWrite(leftTireForward,255);   // turns left tire forward
+  analogWrite(rightTireForward,130);  //turns right tire forward
+  analogWrite(leftTireBackward, 0);   //left tire backward 0
+  analogWrite(rightTireBackward, 0);   //right tire backward 0
+}
+
+void lineAdjustLeft(){
+
+  analogWrite(leftTireForward,130);   // turns left tire forward
+  analogWrite(rightTireForward,255);  //turns right tire forward
+  analogWrite(leftTireBackward, 0);   //left tire backward 0
+  analogWrite(rightTireBackward, 0);   //right tire backward 0
+}
+
+boolean puckPlaced(){
+
+  if(forwardDistance() < 40){           //If detect car
+      return true;
+  }
+
+  return false;
 }
 
 void evadeCollision9(){
@@ -329,7 +419,7 @@ void continuousForward(){
 
   //printDistance();
   while(forwardDistance() > cDistance){
-     mazeMoveForward();
+     basicMoveForward();
     // neoMoveForward();
    //  Serial.println("calculateDistance() higher");
     }
@@ -377,7 +467,7 @@ void evadeCollision(){//Movement logic using millis
   Serial.print("Time is:");
   Serial.println(currentMillis_1);
    clearMotors();
-   mazeMoveForward();
+   basicMoveForward();
    if(forwardDistance()<= cDistance){ //if distance<30 
    // printDistance();
     clearMotors();
@@ -395,7 +485,7 @@ void evadeCollision(){//Movement logic using millis
               }
             }
            clearMotors();
-          mazeMoveForward();
+          basicMoveForward();
       }
    }
 }
@@ -414,18 +504,14 @@ void moveForwardInTicks(int ticks){
   //clearMotors();
 }
 
-void mazeMoveForward(){
+void basicMoveForward(){
   //Serial.print("Left sensor distance: ");
-    //Serial.println(calculateLeftSonarSensorDistance());
-  if (LeftSonarSensorDistance() <= leftLowerLimitDistance && LeftSonarSensorDistance() > 1){
-    
-    analogWrite(leftTireForward,200);   // turns left tire forward
-    analogWrite(rightTireForward,200);  //turns right tire forward
+    //Serial.println(calculateLeftSonarSensorDistance());    
+    analogWrite(leftTireForward,180);   // turns left tire forward
+    analogWrite(rightTireForward,180);  //turns right tire forward
     analogWrite(leftTireBackward, 0);   //left tire backward 0
     analogWrite(rightTireBackward, 0);   //right tire backward 0
     neoMoveForward();
-    } else (
-      clearMotors()); 
 }
 
 
