@@ -178,72 +178,23 @@ Test updateLeftSonarSensorDistance using Serial.println() to ensure the leftSona
 //===== [LOOP] =====
 void loop(){
   
-//  Serial.print("LOOP: ");
-//  Serial.println(number);
-//  
-//   moveForwardInTicks(50);
-//  Serial.println(countLW);
-//  clearMotors();
-//  wait(1000);
-//  moveForwardInTicks(2);
-//   wait(4000);
-//   moveForwardInTicks(5);
-//   wait(4000);
-//   moveForwardInTicks(10);
-//   wait(4000);
-   //printDistance();
- // testRotateRightCollision();
- 
- //number+=1;
-// moveForwardInTicks(80);
- //rotateLeft90();
-// clearMotors();
-// wait(10000000);
+  mazeMoveForwardWithTicks();
+  clearMotors();
+  if(forwardDistance() < cDistance){
 
-//Serial.print("LeftDistance: ");
-//updateLeftSonarSensorDistance();
-//Serial.println(leftSonarDistance);
-
-while(LeftSonarSensorDistance() < 30){
-
-    continuousForward();
-
-    if(forwardDistance() < cDistance){
-      
-      updateLeftSonarSensorDistance();
-      
-      if(leftSonarDistance < 30){
-
-        rotateRight90();
-
-        if(forwardDistance() < cDistance){
-          
-          updateLeftSonarSensorDistance();
-          if(leftSonarDistance < 30){
-
-            rotateRight90();
-          }else{
-             clearMotors();
-             moveForwardInTicks(92);
-             rotateLeft90();
-             moveForwardInTicks(92);
-            }
-        }
-      }else{
-        clearMotors();
-        moveForwardInTicks(92);
-        rotateLeft90();
-        moveForwardInTicks(92);
-       }
+    rotateRight90();
+    wait(300);
+    clearMotors();
+    if(forwardDistance() < cDistance){    
+       rotateLessRight();
     }
   }
-
-  if(LeftSonarSensorDistance() >= 30){
-    clearMotors();
-    moveForwardInTicks(92);
-    rotateLeft90();
-    moveForwardInTicks(92);  
+  if(LeftSonarSensorDistance() > 30){
+    
+   moveForwardInTicks(92);
+   rotateLeft90();
   }
+  
 }
 
 
@@ -276,9 +227,50 @@ while(LeftSonarSensorDistance() < 30){
   }  
  }
 */
+void evadeCollision9(){
+
+  mazeMoveForwardWithTicks();
+  clearMotors();
+  if(forwardDistance() < cDistance){
+
+    rotateRight90();
+    wait(300);
+    clearMotors();
+    if(forwardDistance() < cDistance){    
+       rotateLessRight();
+    }
+  }
+  if(LeftSonarSensorDistance() > 30){
+    
+   moveForwardInTicks(92);
+   rotateLeft90();
+  }
+  
+}
+
+void mazeMoveForwardWithTicks(){
+  //Serial.print("Left sensor distance: ");
+    //Serial.println(calculateLeftSonarSensorDistance());
+    if(forwardDistance() > cDistance){
+      if (LeftSonarSensorDistance() <= 14 && LeftSonarSensorDistance() > 1){
+        while(countLW < 1000 && forwardDistance() > cDistance){
+        
+          analogWrite(leftTireForward,200);   // turns left tire forward
+          analogWrite(rightTireForward,200);  //turns right tire forward
+          analogWrite(leftTireBackward, 0);   //left tire backward 0
+          analogWrite(rightTireBackward, 0);   //right tire backward 0
+          neoMoveForward();
+        }
+      }
+//    else{
+//      clearMotors();
+//      neoMoveBackward();
+//    }
+}
 void evadeCollision8(){
     //turn Left
-  while(LeftSonarSensorDistance() < 30){
+ 
+while(LeftSonarSensorDistance() < 30){
 
     continuousForward();
 
@@ -289,7 +281,8 @@ void evadeCollision8(){
       if(leftSonarDistance < 30){
 
         rotateRight90();
-
+        wait(300);
+        clearMotors();
         if(forwardDistance() < cDistance){
           
           updateLeftSonarSensorDistance();
@@ -298,25 +291,25 @@ void evadeCollision8(){
             rotateRight90();
           }else{
              clearMotors();
-             moveForwardInTicks(80);
+             moveForwardInTicks(92);
              rotateLeft90();
-             moveForwardInTicks(80);
+             moveForwardInTicks(92);
             }
         }
       }else{
         clearMotors();
-        moveForwardInTicks(80);
+        moveForwardInTicks(92);
         rotateLeft90();
-        moveForwardInTicks(80);
+        moveForwardInTicks(92);
        }
     }
   }
 
-  while(LeftSonarSensorDistance() >= 30){
+  if(LeftSonarSensorDistance() >= 30){
     clearMotors();
-    moveForwardInTicks(80);
+    moveForwardInTicks(92);
     rotateLeft90();
-    moveForwardInTicks(80);  
+    moveForwardInTicks(92);  
   }
 }
 
@@ -338,6 +331,20 @@ void rotateLeft90(){
 void rotateRight90(){
 
  int ticks = 50;
+ resetCounters();
+  while(countRW < ticks){
+    analogWrite(leftTireForward,200);  //left tire forward
+    analogWrite(rightTireBackward,200);  //right tire backward
+    analogWrite(leftTireBackward, 0);   //left tire backward 0
+    analogWrite(rightTireForward, 0);   //right tire forward 0
+    neoTurnRight();
+  }  
+  //clearMotors();
+}
+
+void rotateLessRight(){
+
+ int ticks = 43;
  resetCounters();
   while(countRW < ticks){
     analogWrite(leftTireForward,200);  //left tire forward
@@ -465,7 +472,7 @@ void moveForwardInTicks(int ticks){
 void mazeMoveForward(){
   //Serial.print("Left sensor distance: ");
     //Serial.println(calculateLeftSonarSensorDistance());
-  if (LeftSonarSensorDistance() <= 11 && LeftSonarSensorDistance() > 1){
+  if (LeftSonarSensorDistance() <= 14 && LeftSonarSensorDistance() > 1){
     
     analogWrite(leftTireForward,200);   // turns left tire forward
     analogWrite(rightTireForward,200);  //turns right tire forward
@@ -475,6 +482,8 @@ void mazeMoveForward(){
     } else (
       clearMotors()); 
 }
+
+
 
 void sMoveForward(){
   //Serial.print("Left sensor distance: ");
