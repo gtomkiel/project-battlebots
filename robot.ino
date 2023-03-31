@@ -441,7 +441,7 @@ void detectObject()
 {
   int distance = getDistance();
 
-  if(distance < 25) /* Distance from the parking spot to the object will most likely be longer than 15 */
+  if(distance < 25)
   {
     wait = false;
   } 
