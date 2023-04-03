@@ -37,6 +37,8 @@ Considering the travel time and the speed of the sound you can calculate the dis
 //===== [Gripper Rotation] ===== 
 #define gripperOpenPulse 1600
 #define gripperClosePulse 971
+#define gripperPin 9
+#define gripperPulseRepeat 10
 
 // ===== [PINS] =====
 #define frontSonarSensorTrigPin 7
@@ -45,7 +47,7 @@ Considering the travel time and the speed of the sound you can calculate the dis
 #define leftSonarSensorTrigPin 13
 #define leftSonarSensorEchoPin 12
 
-#define gripperPin 9
+
 
 #define leftTireForward 5
 #define leftTireBackward 11 
@@ -183,18 +185,27 @@ Test updateLeftSonarSensorDistance using Serial.println() to ensure the leftSona
 */
 //===== [LOOP] =====
 void loop(){
-qtr.read(sensorValues);
+  qtr.read(sensorValues);
 
-if(puckPlaced()){
-    gripperOpen();
-    delay(7000);
-    lineSensorMoveForward();
-    gripperClose();
-    wait(400);
+//  gripperOpen();
+  openGripper();
+  wait(1500);
+  if(puckPlaced()){
+    basicMoveForward();
+    delay(1300); 
+    while(!allBlack()){
+      lineSensorMoveForward();
+    }
+    basicMoveForward();
+    wait(240);
     clearMotors();
+//    gripperClose();
+    closeGripper();
+    wait(100);
+    clearLineSensorValues();
     rotateLeft();
-    wait(300);
-    clearMotors();
+    basicMoveForward();
+    delay(1600);
     startBot = true;
     while(startBot){
       mazeMoveForwardWithTicks();
@@ -219,111 +230,154 @@ if(puckPlaced()){
         wait(300);
         moveForwardInTicks(35);
       }
-     if(sensorValues[3]>600 && sensorValues[4]>600){
-        basicMoveForward();
-        delay(1000);
-        gripperOpen();
-        moveBackward();
-        delay(1000);
-        startBot = false;
-        clearMotors();
+     if(lineSensorActivated()){
+
+      while(!allBlack()){
+        lineSensorMoveForward();
+      }
+      clearMotors();
+//      gripperOpen();
+      openGripper();
+      wait(300);
+      moveBackward();
+      delay(600);
+      startBot = false;
+      clearMotors();
+      wait(4000000);
      }
     }
+  }
+}
+
+void clearLineSensorValues(){
+  
+  for(int i = 0; i < SensorCount ; i++){
+
+    sensorValues[i] = 0;
   } 
-}
-/*
-if(puckPlaced()){
-  openGripper();
-  delay(15000);   //delay 15 seconds
-  start();
+  
 }
 
-
-boolean puckPlaced(){
-
-  if(forwardDistance() < 30){
+boolean lineSensorActivated(){
+  
+  if(sensorValues[0]>750 || sensorValues[1]>750 || sensorValues[2] >750 || sensorValues[3]>750 || sensorValues[4]>750 || sensorValues[5]>750 || sensorValues[6]>750 || sensorValues[7]>750){
+      
     return true;
   }
+  
   return false;
 }
 
-boolean mazeStart->true
-start(){
-  while(mazeStart == true){
-
-    pulseForward(20);
-    closeGripper();
-    
-    rotateLeft();
-    continuousForward();
-    .....................
-  }
-}
-*/
-void start(){
-  if(puckPlaced()){
-    gripperOpen();
-    delay(7000);
-    lineSensorMoveForward();
-    gripperClose();
-    wait(400);
-    clearMotors();
-    rotateLeft();
-    wait(300);
-    clearMotors();
-
-    mazeMoveForwardWithTicks();
-    clearMotors();
-    if(forwardDistance() < cDistance){
-      if(LeftSonarSensorDistance() < leftUpperLimitDistance){
-        rotateRight();
-        clearMotors();
-        wait(300);
-        if(forwardDistance() < cDistance){ 
-//        wait(300);
-          rotateRight();
-        }
-      }  
-    }
-   if(LeftSonarSensorDistance() > leftUpperLimitDistance){
-    clearMotors();
-    wait(300);
-    moveForwardInTicks(35);
-    rotateLeft();
-    clearMotors();
-    wait(300);
-    moveForwardInTicks(35);
-   }
-  } 
-}
-
-
 //hardcode 25cm at the start of bot, 
 void lineSensorMoveForward(){
-qtr.read(sensorValues);
-if(sensorValues[2] >600 && sensorValues[3]>600 && sensorValues[4]>600 && sensorValues[5]>600){
-  basicMoveForward();
-  delay(1000);
-//  wait(1000000);
-}
-//}else if(sensorValues[2] >600 && sensorValues[3]>600){
-//  lineAdjustRight();
-//}else if(sensorValues[5] >600 && sensorValues[4]>600){
-//  lineAdjustLeft();
-//}else if(sensorValues[3]>600 && sensorValues[4]>600){
-//  basicMoveForward();
-////  delay(1500);
-//}
-//
-else{
-  clearMotors(); 
- }
+  qtr.read(sensorValues);
+ 
+//sensorValues[2] >700 && sensorValues[3]>700 && sensorValues[4]>700 && sensorValues[5]>700
+  printLineSensorValues();
 
+  if(sensorValues[3]>600 && sensorValues[4]>600){
+
+    basicMoveForward();
+    
+  }else if(sensorValues[2] >600 && sensorValues[3]>600 || sensorValues[0]>600 && sensorValues[1]>600){
+    
+    lineAdjustRight();
+  }else if(sensorValues[5] >600 && sensorValues[4]>600 || sensorValues[6]>600 && sensorValues[7]){
+    
+    lineAdjustLeft();
+  }else{
+    
+    clearMotors();  
+  }
+  
+}
+
+
+boolean allBlack(){
+
+  if(sensorValues[0]>600 && sensorValues[1]>600 && sensorValues[2] >600 && sensorValues[3]>600 && sensorValues[4]>600 && sensorValues[5]>600 && sensorValues[6]>600 && sensorValues[7]>600){
+    return true;
+  }
+  return false;  
+}
+
+void printLineSensorValues(){
+  
+  for(int i = 0; i < SensorCount ; i++){
+
+    Serial.print(sensorValues[i]);
+    Serial.print(" ");
+    if(i == 7){
+      Serial.println(" "); 
+    }
+  }  
+}
+
+void start(){
+    qtr.read(sensorValues);
+
+//  gripperOpen();
+  delay(1000);
+  if(puckPlaced()){
+    basicMoveForward();
+    delay(1000); 
+    while(!allBlack()){
+      lineSensorMoveForward();
+    }
+    basicMoveForward();
+    delay(240);
+    clearMotors();
+//    gripperClose();
+    delay(100);
+    rotateLeft();
+    basicMoveForward();
+    delay(1000);
+    startBot = true;
+    while(startBot){
+      mazeMoveForwardWithTicks();
+      clearMotors();
+      if(forwardDistance() < cDistance){
+        if(LeftSonarSensorDistance() < leftUpperLimitDistance){
+          rotateRight();
+          clearMotors();
+          wait(300);
+          if(forwardDistance() < cDistance){ 
+//        wait(300);
+          rotateRight();
+          }
+        }  
+      }
+      if(LeftSonarSensorDistance() > leftUpperLimitDistance){
+        clearMotors();
+        wait(300);
+        moveForwardInTicks(35);
+        rotateLeft();
+        clearMotors();
+        wait(300);
+        moveForwardInTicks(35);
+      }
+     if(lineSensorActivated()){
+
+      while(!allBlack()){
+        lineSensorMoveForward();
+      }
+      clearMotors();
+      delay(200);
+//      gripperOpen();
+      delay(300);
+      moveBackward();
+      delay(600);
+      startBot = false;
+      clearMotors();
+      wait(4000000);
+     }
+    }
+  }
 }
 
 void lineAdjustRight(){
 
-  analogWrite(leftTireForward,255);   // turns left tire forward
+  analogWrite(leftTireForward,200);   // turns left tire forward
   analogWrite(rightTireForward,130);  //turns right tire forward
   analogWrite(leftTireBackward, 0);   //left tire backward 0
   analogWrite(rightTireBackward, 0);   //right tire backward 0
@@ -332,14 +386,14 @@ void lineAdjustRight(){
 void lineAdjustLeft(){
 
   analogWrite(leftTireForward,130);   // turns left tire forward
-  analogWrite(rightTireForward,255);  //turns right tire forward
+  analogWrite(rightTireForward,200);  //turns right tire forward
   analogWrite(leftTireBackward, 0);   //left tire backward 0
   analogWrite(rightTireBackward, 0);   //right tire backward 0
 }
 
 boolean puckPlaced(){
 
-  if(forwardDistance() < 40){           //If detect car
+  if(forwardDistance() < 35){           //If detect car/puck
       return true;
   }
 
@@ -486,24 +540,46 @@ void continuousForward(){
    
     //Serial.println("cDistance higher");
 }
+//
+//void servo(int pin, int pulse){
+//  
+//  digitalWrite(pin,HIGH);
+//  delayMicroseconds(pulse); //in microseconds
+//  digitalWrite(pin,LOW);
+//  delay(20);
+//}
+//
+//void gripperOpen(){
+//  
+//  servo(gripperPin, gripperOpenPulse);
+//}
+//
+//void gripperClose(){
+//
+//  servo(gripperPin, gripperClosePulse);
+//}
 
-void servo(int pin, int length){
-  
-  digitalWrite(pin,HIGH);
-  delayMicroseconds(length); //in microseconds
-  digitalWrite(pin,LOW);
-  delay(20);
+void gripperServo(int pulse){
+
+  for(int i = 0; i < gripperPulseRepeat; i++){
+
+    digitalWrite(gripperPin,HIGH);
+    delayMicroseconds(pulse); //in microseconds
+    digitalWrite(gripperPin,LOW);
+    delay(20);    
+  }
 }
 
-void gripperOpen(){
-  
-  servo(gripperPin, gripperOpenPulse);
+void openGripper(){
+
+  gripperServo(gripperOpenPulse);
 }
 
-void gripperClose(){
+void closeGripper(){
 
-  servo(gripperPin, gripperClosePulse);
+  gripperServo(gripperClosePulse);
 }
+
 
 /*
   Current code logic
@@ -628,8 +704,8 @@ void turnLeft(){ //This moves the my left tire backwards and stops the right tir
 }
 
 void moveBackward(){ //Moves both tires backwards
-  analogWrite(rightTireBackward,160);  //right tire backward
-  analogWrite(leftTireBackward,160);  //turns left tire backward
+  analogWrite(rightTireBackward,200);  //right tire backward
+  analogWrite(leftTireBackward,200);  //turns left tire backward
   analogWrite(rightTireForward,0);    //right tire forward 0
   analogWrite(leftTireForward,0);    //left forward 0
   neoMoveBackward();
@@ -713,7 +789,7 @@ double forwardDistance(){
 
 void printForwardDistance(){ //Prints the distance calculated
 // Prints the distance on the Serial Monitor
-  Serial.print("Distance: ");
+  Serial.print("ForwardDistance: ");
   Serial.println(forwardDistance());
 }
 
@@ -743,6 +819,7 @@ void updateLeftSonarSensorDistance(){
 
   leftSonarDistance = LeftSonarSensorDistance();
 }
+
 
 void wait(int timeToWait)
 // waits for an amount of time in milliseconds
