@@ -92,11 +92,6 @@ void setup() {
 void loop() {  
   qtr.read(sensorValues);
 
-  qtr.calibrate();
-
-  pos = qtr.readLineBlack(sensorValues);
-
-
   if(wait)
   {
     detectObject();
@@ -131,7 +126,7 @@ void rotationR()
 /* Function handling logic for initiating the line maze and picking up the flag */
 void start()
 {
-  delay(2000);
+  delay(3000);
 
   int lines = 0;
 
@@ -141,6 +136,26 @@ void start()
   {
     qtr.read(sensorValues);
 
+    forwardSlow();
+
+    if(sensorValues[0] > 700 && sensorValues[1] > 700 && sensorValues[2] > 700 && sensorValues[3] > 700 && sensorValues[4] > 700 && sensorValues[5] > 700 && sensorValues[6] > 700 && sensorValues[7] > 700)
+    {
+        lines += 1;
+        delay(200);
+    }
+    if (sensorValues[0] < 700 && sensorValues[1] < 700 && sensorValues[2] < 700 && sensorValues[3] > 700 && sensorValues[4] > 700 && sensorValues[5] < 700 && sensorValues[6] < 700 && sensorValues[7] < 700)
+    {
+        forward();
+    } 
+    else if (sensorValues[0] < 700 && sensorValues[1] < 700 && sensorValues[2] < 700 && sensorValues[5] > 700 || sensorValues[6] > 700 || sensorValues[7] > 700)
+    {
+        adjustRight();
+    }
+    else if (sensorValues[0] > 700 || sensorValues[1] > 700 || sensorValues[2] > 700 && sensorValues[5] < 700 && sensorValues[6] < 700 && sensorValues[7] < 700)
+    {
+        adjustLeft();
+    }
+
     if (lines > 4)
     {
       stop();
@@ -149,16 +164,8 @@ void start()
       delay(50);
       analogWrite(grp, 0);
       delay(1000);
-      leftTurn(28);
+      leftTurn(33);
       break;
-    }
-    else
-    {
-      if(sensorValues[0] > 700 && sensorValues[1] > 700 && sensorValues[2] > 700 && sensorValues[3] > 700 && sensorValues[4] > 700 && sensorValues[5] > 700 && sensorValues[6] > 700 && sensorValues[7] > 700)
-      {
-        lines += 1;
-        delay(200);
-      }
     }
   }
   set = true;
