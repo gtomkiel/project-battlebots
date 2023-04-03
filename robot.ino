@@ -35,8 +35,6 @@ const int sensorEight = A7;
 volatile int countL = 0;
 volatile int countR = 0;
 
-int pos = 0; 
-
 volatile long duration;
 volatile int distance;
 
