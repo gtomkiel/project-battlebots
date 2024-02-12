@@ -4,7 +4,7 @@
 ## Description
 TDB
 
-## Instalation guide
+## Installation guide
 1. Clone the repository
 ```
 git clone git@github.com:gtomkiel/project-battlebots.git
